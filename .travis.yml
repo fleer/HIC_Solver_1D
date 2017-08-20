@@ -1,8 +1,8 @@
 sudo: required
 before_install:
-    - wget ftp://ftp.gnu.org/gnu/gsl/gsl-*.*.tar.gz
-    - tar -zxvf gsl-*.*.tar.gz
-    - cd gsl-1.7 & ./configure & make check & make install
+    - wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz
+    - tar -zxvf gsl-2.4.tar.gz
+    - cd gsl-2.4 & ./configure & make check & make install
 
 language: cpp
 
