@@ -1,10 +1,21 @@
-sudo: required
-install:
-    - wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz
-    - tar -xzvf gsl-2.4.tar.gz
-    - pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd
-
 language: cpp
+
+os:
+    - linux
+    - osx
+
+sudo: required
+before_install:
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+      brew install gsl; 
+      brew install openmpi; fi
+
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+      wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz;
+      tar -xzvf gsl-2.4.tar.gz;
+      pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd;
+      fi
+
 
 compiler:
   - clang++
