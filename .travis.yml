@@ -1,6 +1,8 @@
 sudo: required
-before_install:
-    - ./install_gsl.sh
+install:
+    - wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz
+    - tar -xzvf gsl-2.4.tar.gz
+    - pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd
 
 language: cpp
 
