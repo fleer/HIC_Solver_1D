@@ -1,8 +1,8 @@
 language: cpp
 
 os:
-    - linux
     - osx
+    - linux
 
 sudo: required
 before_install:
@@ -10,7 +10,7 @@ before_install:
       brew install gsl; 
       brew install openmpi; fi
 
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
       wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz;
       tar -xzvf gsl-2.4.tar.gz;
       pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd;
