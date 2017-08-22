@@ -1,9 +1,17 @@
-//-------
-// include APPROXIMATE RIEMANN SOLVER (Akamatsu et. al 2013) 
-//-------
-
-#include "riemann.h"
 #include <stdlib.h>
+
+//-------------------------------------------------
+// Einbinden der Header mit dem approximaitven Riemann-Solver aus
+// Y. Akamatsu et al., arXiv.org (2013) 34, 1302.1665
+//-------------------------------------------------
+
+#include "RIEMANN.h"
+
+
+//-------------------------------------------------
+// Header mit Klasse als Template zum einfachen implementieren von
+// numerischen Schmes
+//-------------------------------------------------
 
 class NUMSCHEME
 {
@@ -14,15 +22,16 @@ public:
 };
 
 
-//-------
-// include 1-DIM PPM-METHOD for time evolution (adapted version of Marti & Mueller 1996) 
-//-------
-
-#include "ppm.h"
-
-
-//-------
-// include 1-DIM MUSCL-HANCOCK SCHEME for time evolution 
-//-------
+//-------------------------------------------------
+// Einbinden der Header fuer die 1+1 Dimensionale MUSCL-HANCOCK-Methode
+//-------------------------------------------------
 
 #include "MUSCL.h"
+
+
+//-------------------------------------------------
+// Einbinden der Header fuer die 1+1 Dimensionale PPM-Methode
+// (Wird in der Masterarbeit nicht verwendet)
+//-------------------------------------------------
+
+#include "PPM.h"

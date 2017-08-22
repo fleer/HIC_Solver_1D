@@ -7,8 +7,8 @@ os:
 sudo: required
 before_install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
-      travis_wait brew install gsl; 
-      travis_wait brew install openmpi; fi
+      travis_wait brew install gcc --without-multilib; 
+      travis_wait brew install gsl; fi
 
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
       wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz;

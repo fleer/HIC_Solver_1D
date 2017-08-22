@@ -1,3 +1,25 @@
+//-------------------------------------------------
+//-------------------------------------------------
+//Programm zur numerischen Simulation von Quark-Gluon-Plasma
+//in Schwerionenkollisionen mit Hilfe von relativistischer Hydrodynamik
+// 
+// 
+//
+//	Es enthaelt:
+//		+ Berechnungen in 1+1 Dimensionen
+//		+ MUSCL-HANCOCK Scheme
+//		+ Beruecksichtigung dissipativer Effekte 
+//		  (ISRAEL-STEWARD-THEORIE)
+//		+ Variable Anfangsbedingungen:
+//			- Shocktube-Problem
+//			- Landau-Modell
+//		+ Einbau einer moeglichen Stoerung
+//	Compilieren mit:
+//	g++ HYDRO.cpp -std=c++11 -Wall -o hydro -lm -lgsl -fopenmp 
+//-------------------------------------------------
+//-------------------------------------------------
+
+
 #include<stdlib.h>
 #include<iostream>
 #include<string>
@@ -6,9 +28,13 @@
 #include<stdio.h>
 #include<math.h>
 #include<gsl/gsl_integration.h>
-//#include<time.h>
-#include "CPUTIME.h"
+#include<time.h>
 #include <stdio.h>
+
+//-------------------------------------------------
+// Eibinden der Bibliothekt fuer OPENMP, falls es unterstuetzt wird 
+//-------------------------------------------------
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -18,9 +44,10 @@ using namespace std;
 using std::max;
 using std::min;
 
-//------
-// STRUCTURE for the initial states of the problem
-//------
+
+//-------------------------------------------------
+// Erstellen einer STRUCTURE fuer die Anfangsbedingungen des Problems
+//-------------------------------------------------
 struct STATE 
 {
 	STATE (int s) : side(s) {};
@@ -29,11 +56,6 @@ struct STATE
 	double  chempot;
 	double 	baryon;
 	double  velx;
-	// for 3Dim euler
-	/*
-	double  vely;
-	double  velz;
-	*/
 	double  pressure;
 	double  energy;
 	double  gamma;
@@ -41,103 +63,137 @@ struct STATE
 	int side;
 };	
 
-//-------
-// include EOS (IDEAL GAS, QCD (BOCHUM IMPLEMENTED)
-//-------
 
-#include "EOS.h"
-
-//-------
-// for usefull energy and pressure, multiply with fermi^3 (Mev^3/fm^3)
-//-------
+//-------------------------------------------------
+// Fuer die Sinnvolle Einheiten von Druck und Energie multipliziere mit fermi^3 
+// --> Erhaelt Einheiten von (Mev^3/fm^3)
+//-------------------------------------------------
 
 double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 
 
-//-------
-// functions which reads the input.ini anf prints it out in the terminal
-//-------
+//-------------------------------------------------
+// Header mit Zustandsgleichungen 
+// 	+ Ideales Gluongas aus
+// 	  E. Molnar, H. Niemi and D.H. Rischke, 
+// 	  The European Physical Journal C 65 (2009) 615
+// 	+ QCD
+// 	  Z. Fodor et al., 
+// 	  Journal of High Energy Physics 2010 (2010) 77  
+//-------------------------------------------------
 
-void readin(STATE * L, STATE * R, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS); 
-
-void printout(STATE L, STATE R, double STOPTIME, double DELTAT, int GRIDPOINTS, double GRIDLENGTH, double SHEARCONST, string SCHEME, string SLIMITER, string WHICHEOS, string VISCOUS);
+#include "EOS.h"
 
 
-//-------
-//include NUMERICAL SCHEMES 
-//-------
-
+//-------------------------------------------------
+// Header mit numerischen Schemes 
+//-------------------------------------------------
 
 #include "NUMSCHEME.h"
 
-//-------
-//include DISSIPATION-METHOD (Akamatsu et. al 2013)
-//-------
 
-#include "dissipation.h"
+//-------------------------------------------------
+//Header fuer Dissipation
+//	+ Algorithmus nach
+//		- M. Takamoto and S.i. Inutsuka,
+//		  Journal of computational physics 230 (2011) 7002
+//		- Y. Akamatsu et al., 
+//		  arXiv.org (2013) 34, 1302.1665 
+//-------------------------------------------------
 
+#include "DISSIPATION.h"
+
+
+//-------------------------------------------------
+// Funktion zum Einlesen der 'input.ini'
+//-------------------------------------------------
+
+void readin(STATE * L1,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS); 
 
 
 int main()
 {
-	//-------
-	// initialize inistial States
-	//-------
-	STATE iLEFT(0), iRIGHT(1);
+	//-------------------------------------------------
+	//Initialisierung der Anfangszustaende
+	//-------------------------------------------------
+
+	STATE iLEFT1(0), iRIGHT1(1), iLEFT2(0), iRIGHT2(1);
+
+	//-------------------------------------------------
+	//Initialisierung der Stoerung (Es ist egal ob sie als linker (0)
+	// oder rechter (1)  Zustand initialisiert wwird 
+	//-------------------------------------------------
+
+	STATE PERT(0);
 
 
-	//-------
-	//initialize equation of state
-	//-------
+
+	//-------------------------------------------------
+	//Initialisierung der Zustandsgleichung und des numerischen Schemes
+	//-------------------------------------------------
+
 	EOS * eofstate;
 
-	//-------
-	//initialize numerical scheme 
-	//-------
 	NUMSCHEME * nscheme;
 
-	//-------
-	//some variables needed for the specification of the programm parameters like
-	//computing the dissipation, bulk voscosity, which eos, which numerical scheme etc.
-	//-------
 
+
+	//-------------------------------------------------
+	// Initialisierung einiger Systemspezifischer Variablen
+	//-------------------------------------------------
+
+
+	// Scheme, Slope-Limiter, Welche Zustandsgleichung, Dissipation?
 	string SCHEME, SLIMITER, WHICHEOS, VISCOUS;
 	int yesno=0, bulkyes=0;
 
-	//-------
-	//initialize system dependend variables like grid length finial time of the system, # of gridoints
-	//-------
-
+	// Endzeitpunkt, Zeitdiskretisierung, Systemlaenge
 	double STOPTIME, DELTAT, GRIDLENGTH;
-	int GRIDPOINTS;
 	STOPTIME=DELTAT=GRIDLENGTH=0;
+
+	// # Gitterpunkte
+	int GRIDPOINTS;
 	GRIDPOINTS=0;
-	double SHEARCONST=0, *BULKCONST;
+
+	// Matrix fuer die primitiven Variablen an jedem Gitterpunkt
 	double **GVAR;
+
+	// Vektoren fuer x-Koordinate und Ortsdiskretisierung an jedem Punkt
+	// (Vektoren falls das Programm auf allgemeinere Korrdinatensysteme erweitert wird)
 	double *X , *DX;
 
 
-	//-------
-	//VARIABLES FOR DISSIPATION
-	//-------
 
-	double **GVARINITIAL, *VINITIAL,*VRIEMANN, *TAUETA, *PXX, *BULK;
+	//-------------------------------------------------
+	// Initialisierung der Variablen, die fuer Dissipation gebraucht werden
+	//-------------------------------------------------
 
+	// eta/s 
+	double SHEARCONST=0;
 
-
-	//-------
-	//initialize time for measurement of program duration
-	//-------
-
-	//time_t now, later;
-	double now, later;
-	//int mod;
+	// zeta	
+	double *BULKCONST;
 
 
+	double **GVARINITIAL; 
+	double *VINITIAL,*VRIEMANN, *TAUETA, *PXX, *BULK;
 
-	//-------
-	//check if OPENMP is available --> check number of cores
-	//-------
+
+
+
+	//-------------------------------------------------
+	// Variablen fuer die Berechnung der Rechenzeit 
+	//-------------------------------------------------
+
+	time_t now, later;
+	int mod;
+
+
+	//-------------------------------------------------
+	//Test, ob OPENMP nutzbar
+	//Ausgabe der # der nutzbaren CPUs
+	//-------------------------------------------------
+
 #ifdef _OPENMP
 	printf("OPENMP:\n");
 	printf("Number of usable CPUs: %d \n", omp_get_num_procs());
@@ -147,24 +203,21 @@ int main()
 	}
 #endif
 
-	//-------
-	//choose equation of state, the need of dissipation, bulk viscosity 
-	//-------
 
-	//time(&now);
-	now=getCPUTime( );
+	time(&now);
 
-	//-------
-	//READ IN initial parameter from "input.ini"
-	//-------
 
-	readin(&iLEFT, &iRIGHT, &STOPTIME, &DELTAT, &GRIDPOINTS, &GRIDLENGTH, &SHEARCONST, &SCHEME, &SLIMITER, &WHICHEOS, &VISCOUS); 
+	//-------------------------------------------------
+	//Einlesen der Parameter aus 'input.ini'
+	//-------------------------------------------------
+
+	readin(&iLEFT1,&iLEFT2, &iRIGHT1, &iRIGHT2, &PERT, &STOPTIME, &DELTAT, &GRIDPOINTS, &GRIDLENGTH, &SHEARCONST, &SCHEME, &SLIMITER, &WHICHEOS, &VISCOUS); 
 	if(WHICHEOS== "QCD")
 		eofstate = new QCD;
 	else if(WHICHEOS== "GAS")
 		eofstate = new GAS;
 	else {
-		cout << "WRONG INPUT!!!" << endl;
+		cout << "WRONG INPUT (EOS) !!!" << endl;
 		return 0;
 	}
 
@@ -175,71 +228,96 @@ int main()
 	else if(VISCOUS== "N")
 		yesno=0;
 	else {
-		cout << "WRONG INPUT!!!" << endl;
+		cout << "WRONG INPUT (VISCOSITY) !!!" << endl;
 		return 0;
 	}
-	iLEFT.pressure=eofstate->get_pressure(iLEFT.temperature);
-	iLEFT.energy=eofstate->get_energy(iLEFT.temperature);
-	//gamma factor 1-Dim	
-	iLEFT.gamma=1/sqrt(1-(pow(iLEFT.velx,2)));
-	//fermi3 zum testen!!!
-	iLEFT.baryon=eofstate->get_baryondensity(iLEFT.temperature, iLEFT.chempot)*fermi3;
-	iLEFT.soundvel=eofstate->get_soundvel(iLEFT.temperature);
-	iRIGHT.pressure=eofstate->get_pressure(iRIGHT.temperature);
-	iRIGHT.energy=eofstate->get_energy(iRIGHT.temperature);
-	//gamma factor, only for 1Dim
-	iRIGHT.gamma=1/sqrt(1-(pow(iRIGHT.velx,2)));
-	//fermi3 zum testen!!!
-	iRIGHT.baryon=eofstate->get_baryondensity(iRIGHT.temperature, iRIGHT.chempot)*fermi3;
-	iRIGHT.soundvel=eofstate->get_soundvel(iRIGHT.temperature);
-	printout(iLEFT, iRIGHT, STOPTIME, DELTAT, GRIDPOINTS, GRIDLENGTH, SHEARCONST, SCHEME, SLIMITER, WHICHEOS, VISCOUS);
 
 
+	//-------------------------------------------------
+	//Fuellen der Structures mit Hilfe der Zustandsgleichung
+	//-------------------------------------------------
+
+	iLEFT1.pressure=eofstate->get_pressure(iLEFT1.temperature);
+	iLEFT1.energy=eofstate->get_energy(iLEFT1.temperature);
+	//Gamma-Faktor 1-Dim	
+	iLEFT1.gamma=1/sqrt(1-(pow(iLEFT1.velx,2)));
+	iLEFT1.baryon=eofstate->get_baryondensity(iLEFT1.temperature, iLEFT1.chempot)*fermi3;
+	iLEFT1.soundvel=eofstate->get_soundvel(iLEFT1.temperature);
+	iLEFT2.pressure=eofstate->get_pressure(iLEFT2.temperature);
+	iLEFT2.energy=eofstate->get_energy(iLEFT2.temperature);
+	iLEFT2.gamma=1/sqrt(1-(pow(iLEFT2.velx,2)));
+	iLEFT2.baryon=eofstate->get_baryondensity(iLEFT2.temperature, iLEFT2.chempot)*fermi3;
+	iLEFT2.soundvel=eofstate->get_soundvel(iLEFT2.temperature);
+	iRIGHT1.pressure=eofstate->get_pressure(iRIGHT1.temperature);
+	iRIGHT1.energy=eofstate->get_energy(iRIGHT1.temperature);
+	iRIGHT1.gamma=1/sqrt(1-(pow(iRIGHT1.velx,2)));
+	iRIGHT1.baryon=eofstate->get_baryondensity(iRIGHT1.temperature, iRIGHT1.chempot)*fermi3;
+	iRIGHT1.soundvel=eofstate->get_soundvel(iRIGHT1.temperature);
+	iRIGHT2.pressure=eofstate->get_pressure(iRIGHT2.temperature);
+	iRIGHT2.energy=eofstate->get_energy(iRIGHT2.temperature);
+	iRIGHT2.gamma=1/sqrt(1-(pow(iRIGHT2.velx,2)));
+	iRIGHT2.baryon=eofstate->get_baryondensity(iRIGHT2.temperature, iRIGHT2.chempot)*fermi3;
+	iRIGHT2.soundvel=eofstate->get_soundvel(iRIGHT2.temperature);
+
+	//Stoerung
+	PERT.pressure=eofstate->get_pressure(PERT.temperature);
+	PERT.energy=eofstate->get_energy(PERT.temperature);
+	PERT.gamma=1/sqrt(1-(pow(PERT.velx,2)));
+	PERT.baryon=eofstate->get_baryondensity(PERT.temperature, PERT.chempot)*fermi3;
+	PERT.soundvel=eofstate->get_soundvel(PERT.temperature);
+
+
+
+	//-------------------------------------------------
+	//Initialisierung des Gitters
+	//Gittergroesse [START-4:STOP+4]
+	//-------------------------------------------------
 
 	X = new double [GRIDPOINTS+8];
 	DX = new double [GRIDPOINTS+8];
 	GVAR = new double * [GRIDPOINTS+8];
 	for(int I=0; I<GRIDPOINTS+8;I++) GVAR[I] = new double [3];
 
-	//------
-	//initialize grid
-	//Size of Grid: [START-4:STOP+4]
-	//------
-
 	double ZERO=4;
 	double STOP=GRIDPOINTS+4;
 
-	//------
-	//CONSERVED VARIABLES FOR DISSIPATION
-	//------
+
+	//-------------------------------------------------
+	//Speichern von Variablen fuer Dissipationsalgortihmus
+	//	+ Anfangsgeschwindigkeit
+	//	+ Geschwindigkeit nach Riemann-Problem
+	//	+ Matrix zum Zwischenspeichern aller Variablen
+	//-------------------------------------------------
 
 	VINITIAL = new double  [GRIDPOINTS+8];
 	VRIEMANN= new double  [GRIDPOINTS+8];
 	GVARINITIAL= new double * [GRIDPOINTS+8];
 	for(int I=0; I<GRIDPOINTS+8;I++) GVARINITIAL[I] = new double [3];
 
-	//------
-	//RELAXATION TIME
-	//------	
+
+	//-------------------------------------------------
+	//Relaxationszeit
+	//-------------------------------------------------
 
 	TAUETA= new double  [GRIDPOINTS+8];
 
-	//------
-	//VARIABLES FOR SHEAR (PXX) und BULK VISCOSITY (BULK)
-	//------
+
+	//-------------------------------------------------
+	//Variablen fuer Scher- (PXX) und Dehnviskositaet (BULK)
+	//-------------------------------------------------
 
 	PXX= new double  [GRIDPOINTS+8];
 	BULK= new double  [GRIDPOINTS+8];
 	double ETA=SHEARCONST*pow(10,3)/(fermi3);		
 
-
-	//------
-	//CONST FOR BULK VISCOSITY (NOT CONSTANT BECAUSE OF THE DEPENDENCE ON SOUND VELOCITY) 
-	//------
+	//-------------------------------------------------
+	//Konstante zeta fuer Dehnviskositaet
+	//(Vektor, weil Abhaengig von Schallgeschwindigkeit 
+	//und damit an unterschiedlichen Gitterpunkten verschieden)
+	//-------------------------------------------------
 
 	BULKCONST= new double  [GRIDPOINTS+8];
 
-	//INITIALIZE ARRAYS
 
 	for(int I=0; I<GRIDPOINTS+8;I++)
 	{
@@ -248,16 +326,23 @@ int main()
 			GVARINITIAL[I][K]=0;
 	}
 
-	//-------
-	//START time evaluation with the choosen numerical scheme (PPM, MUSCL); 
-	// (EOS, GRID POINTS, GRID LENGTH, L initial STATE, R initial STATE, X, DELTA X)
-	//-------
+	//-------------------------------------------------
+	//Variable fuer Progressbar
+	//-------------------------------------------------
+
+	int barWidth=70;
+
+	//-------------------------------------------------
+	//Initialisierung des numerischen Schemes mit Anfangsparametern
+	//	+ PPM --> Piecwise Parabolic Method (Wird in der Masterarbeit nicht verwendet)
+	//	+ MUSCL --> MUSCL-HANCOCK-Methode
+	//-------------------------------------------------
 
 	if(SCHEME== "PPM")
-		nscheme = new PPM (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT,iRIGHT, GVAR,X,DX);
+		nscheme = new PPM (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT1,iLEFT2,iRIGHT1,iRIGHT2,PERT,GVAR,X,DX);
 	else {
 		if(SCHEME== "MUSCL")
-			nscheme = new MUSCL (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT,iRIGHT, GVAR,X,DX,SLIMITER);
+			nscheme = new MUSCL (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT1,iLEFT2,iRIGHT1,iRIGHT2, PERT, GVAR,X,DX,SLIMITER);
 		else {
 			cout << "(SCHEME) WRONG INPUT!!!" << endl;
 			return 0;
@@ -265,14 +350,22 @@ int main()
 	}
 
 
+	//-------------------------------------------------
+	//START des eigentlichen Programmes 
+	//	+ FN --> # Zeitschritt
+	//	+ FTIME --> Gesamtzeit [fm]
+	//-------------------------------------------------
+
 	float progress = 0.0;
 	int FN=1;
 
 	double FTIME=0;
 
-	//-------
-	//output for the contourplot for p & v
-	//-------
+
+	//-------------------------------------------------
+	//Datenausgabe fuer Contourplot der primitiven Variablen
+	//-------------------------------------------------
+
 	fstream c_output_p, c_output_v, c_output_n;
 
 	c_output_p.open("DATA/c_output_p.txt", ios::out);
@@ -280,9 +373,9 @@ int main()
 	c_output_n.open("DATA/c_output_n.txt", ios::out);
 
 
-	//-------
-	//output of initial state in file "output_0.txt"
-	//-------
+	//-------------------------------------------------
+	//Datenausgabe des Anfangszustandes (t=0) in "DATA/output_0.txt"
+	//-------------------------------------------------
 
 	fstream output;
 
@@ -320,44 +413,53 @@ int main()
 	output.close();
 
 
-
-	int barWidth=70;
-
-	//-------
-	//start of time loop
-	//-------
+	//-------------------------------------------------
+	//START der Zeitschleife
+	//-------------------------------------------------
 
 	while(	FTIME <= STOPTIME)
 	{
-		//-------
-		//creation of progress bar
-		//-------
+
+		//-------------------------------------------------
+		//Erstellen eienr Progressbar
+		//-------------------------------------------------
 
 		std::cout << "[";
 		int pos = barWidth * progress;
 		for (int i = 0; i < barWidth; ++i) {
-			if (i < pos) std::cout << "█";
+			if (i < pos) std::cout << "=";
 			else std::cout << " ";
 		}
 		std::cout << "] " << int(progress*100.0) << " %\r"; 
 		std::cout.flush();
 
+
+		//-------------------------------------------------
+		//Nutzung der Randbedingungen
+		//-------------------------------------------------
+
 		nscheme->boundary(GVAR);
-		//-------
-		//SAVE PRIMITIVE VARIABLES FOR DISSIPATION & GET RELAXATION TIME
-		//-------
+
+
+		//-------------------------------------------------
+		//Berechnung der Relaxationszeit 
+		//	+ tau=1/T
+		//-------------------------------------------------
+
+
 		for(int I=ZERO; I< STOP; I++)
 		{
 			double FERMI=0.197*pow(10,3);
 			double T=eofstate->get_temperature(GVAR[I][2]);
-			//TAUETA[I]=(SHEARCONST*10*FERMI)/T;
 			TAUETA[I]=1/(T/FERMI);
 			if(bulkyes==1)
 			{
 				double C=1/3-eofstate->get_soundvel(T);
 				BULKCONST[I]=15*pow(C,2)*ETA;
 			}
-			//CHECK IF DELTAT IS SMALL ENOUGH, BECAUSE DT<TAU!!!
+
+			//Routinecheck, ob DELTAT klein genug, da gelten muss DELTAT>TAU
+			//Ansonsten DELTAT kleiner machen
 
 			if(DELTAT>TAUETA[I] || DELTAT==TAUETA[I]) DELTAT=TAUETA[I]*0.1;
 
@@ -367,19 +469,24 @@ int main()
 		}
 
 
+		//-------------------------------------------------
+		//Zeitliche Entwicklung der primitiven Variablen GVAR  mit gewaehltem numrischen Scheme
+		//-------------------------------------------------
 
 		nscheme->evaluate(GVAR,DELTAT);
 
-		//-------
-		//SAVE PRIMITIVE VARIABLES FOR DISSIPATION
-		//-------
+
+		//-------------------------------------------------
+		//Speichern der Primitiven Variablen fuer Dissipationsalgorithmus
+		//-------------------------------------------------
 		for(int I=ZERO; I< STOP; I++)
 			VRIEMANN[I]=GVAR[I][1];
 
 
-		//-------
-		//DISSIPATION 
-		//-------
+		//-------------------------------------------------
+		//DISSIPATION
+		//-------------------------------------------------
+		
 		if(yesno==1)
 		{
 			DISSIPATION dissipation(eofstate, TAUETA, ETA,VINITIAL,VRIEMANN, GRIDPOINTS, DX, DELTAT, BULKCONST);
@@ -401,14 +508,15 @@ int main()
 					GVAR[I][K]=GVARINITIAL[I][K];
 			}
 		}
+		//-------------------------------------------------
+		//Berechnung des naechsten Zeitschrittes (CFL-Bedingung, CFL-Nummer:0.4)
+		//-------------------------------------------------
 
-		//CFL Number is 0.4  according to details for FIG 8.
 		FTIME=FTIME+nscheme->get_timestep();
-		
 
-		//-------
-		//output
-		//------
+		//-------------------------------------------------
+		//Datenausgabe in "DATA/output_*.txt"
+		//-------------------------------------------------
 
 		fstream output;
 
@@ -449,211 +557,111 @@ int main()
 		c_output_n << endl;	
 		output.close();
 
+
+
 		FN++;
 		progress=FTIME/STOPTIME;
 	}
+
+
+	//-------------------------------------------------
+	//Schliessen der Dateien fuer Contourplots
+	//-------------------------------------------------
+
 	c_output_p.close();
 	c_output_v.close();
 	c_output_n.close();
 	cout << endl;
 
 
+	//-------------------------------------------------
+	//Rechenzeit
+	//-------------------------------------------------
 
+	time(&later);
+	mod= ((int) difftime(later,now))% 60;
 
-	//time(&later);
-	later = getCPUTime( );
-	//mod= ((int) difftime(later,now))% 60;
-	
-	cout << "Computation Time: " << (later - now) << " seconds!" << endl; 
+	cout << "Computation Time: " << (difftime(later,now)- (double) mod)/60.<< " minutes & " << mod  << " seconds!" << endl; 
 	return 0;
 }
 
-//-------
-//READ IN the initial parameter from 'input.ini'
-//-------
-void readin(STATE * L, STATE * R, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS) 
+
+//-------------------------------------------------
+//Einlesen der Parameter aus 'input.ini'
+//-------------------------------------------------
+
+void readin(STATE * L1 ,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS) 
 {
 
 	std::string templine; 
 	ifstream sourcedata;
 	sourcedata.open("input.ini", ios_base::in);
 
-if (!sourcedata)
-       cout << "Could not open data!" << endl;
-else 
-{                                       
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	L->temperature=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	L->chempot=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	L->velx=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	/*		
-			L->vely=atof(templine.c_str());
-			sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-			getline(sourcedata,templine);
-			L->velz=atof(templine.c_str());
-			sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-			getline(sourcedata,templine);
-	*/
-	R->temperature=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	R->chempot=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	R->velx=atof(templine.c_str());
-	/*
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	   R->vely=atof(templine.c_str());
-	   sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	   getline(sourcedata,templine);
-	   R->velz=atof(templine.c_str());
-	*/
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*STOPTIME=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*DELTAT=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*GRIDPOINTS=(int) atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*GRIDLENGTH=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*SHEARCONST=atof(templine.c_str());
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*SCHEME=templine.c_str();
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*SLIMITER=templine.c_str();
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*WHICHEOS=templine.c_str();
-	sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
-	getline(sourcedata,templine);
-	*VISCOUS=templine.c_str();
+	if (!sourcedata)
+		cout << "Could not open data!" << endl;
+	else 
+	{                                       
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		L1->temperature=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		L1->velx=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		L2->temperature=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		L2->velx=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		PERT->temperature=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		PERT->velx=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		R1->temperature=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		R1->velx=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		R2->temperature=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		R2->velx=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		L1->chempot=L2->chempot=R1->chempot=R2->chempot=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*STOPTIME=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*DELTAT=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*GRIDPOINTS=(int) atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*GRIDLENGTH=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*SHEARCONST=atof(templine.c_str());
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*SCHEME=templine.c_str();
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*SLIMITER=templine.c_str();
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*WHICHEOS=templine.c_str();
+		sourcedata.ignore(numeric_limits<streamsize>::max(), '\n');
+		getline(sourcedata,templine);
+		*VISCOUS=templine.c_str();
 
-} 
-sourcedata.close();
+	} 
+	sourcedata.close();
 }
-
-void printout(STATE L, STATE R, double STOPTIME, double DELTAT, int GRIDPOINTS, double GRIDLENGTH, double SHEARCONST, string SCHEME, string SLIMITER, string WHICHEOS, string VISCOUS)
-{
-	cout << "---------------------" << endl;
-	cout << "LEFT STATE:" << endl;
-	cout << "---------------------" << endl;
-
-	cout << "INITIAL TEMPERATURE [MeV]:" << endl; 
-	cout << L.temperature << endl;
-	cout << "INITIAL CHEMICAL POTENTIAL [MeV]:" << endl;
-	cout << L.chempot << endl;
-	cout << "PRESHOCK PRESSURE [MeV/fm^3]:";
-	cout << "\n";
-	cout << L.pressure*fermi3;
-	cout << "\n";
-	cout << "PRESHOCK ENERGYDENSITY [MeV/fm^3]:";
-	cout << "\n";
-	cout << L.energy*fermi3;
-	cout << "\n";
-	cout << "PRESHOCK BARYONDENSITY [MeV]:";
-	cout << "\n";
-	cout << L.baryon;
-	cout << "\n"; 
-	cout << "INITIAL VELOCITY X (UNITS OF C):" << endl; 
-	cout << L.velx<< endl; 
-/*
-	cout << "INITIAL VELOCITY Y (UNITS OF C):" << endl; 
-	cout << L.vely<< endl; 
-	cout << "INITIAL VELOCITY Z (UNITS OF C):" << endl; 
-	cout << L.velz<< endl; 
-*/
-	cout << "INITIAL SOUNDVElOCITY X (UNITS OF C):" << endl; 
-	cout << L.soundvel << endl;
-	cout << "GAMMA FACTOR:" << endl;
-	cout << L.gamma<< endl;
-	cout << "\n";
-
-	cout << "---------------------" << endl;
-	cout << "RIGHT STATE:" << endl;
-	cout << "---------------------" << endl;
-	cout << "INITIAL TEMPERATURE [MeV]:" << endl; 
-	cout << R.temperature << endl;
-	cout << "INITIAL CHEMICAL POTENTIAL [MeV]:" << endl;
-	cout << R.chempot << endl;
-	cout << "PRESHOCK PRESSURE [MeV/fm^3]:";
-	cout << "\n";
-	cout << R.pressure*fermi3;
-	cout << "\n";
-	cout << "PRESHOCK ENERGYDENSITY [MeV/fm^3]:";
-	cout << "\n";
-	cout << R.energy*fermi3;
-	cout << "\n";
-	cout << "PRESHOCK BARYONDENSITY [MeV]:";
-	cout << "\n";
-	cout << R.baryon;
-	cout << "\n"; 
-	cout << "INITIAL VELOCITY X (UNITS OF C):" << endl; 
-	cout << R.velx<< endl; 
-/*
-	cout << "INITIAL VELOCITY Y (UNITS OF C):" << endl; 
-	cout << R.vely<< endl; 
-	cout << "INITIAL VELOCITY Z (UNITS OF C):" << endl; 
-	cout << R.velz<< endl; 
-*/
-	cout << "INITIAL SOUNDVELOCITY X (UNITS OF C):" << endl; 
-	cout << R.soundvel << endl;
-	cout << "GAMMA FACTOR:" << endl;
-	cout << R.gamma<< endl;
-	cout << "\n";
-
-	cout << "---------------------" << endl;
-	cout << "TIME:" << endl;
-	cout << "---------------------" << endl;
-	cout << "TIME FOR EVALUTATION [fm]: " << STOPTIME << endl;
-	cout << "ESTIMATED TIMESTEP [fm]: " << DELTAT << endl;
-	cout << "\n";
-	cout << "---------------------" << endl;
-	cout << "GRID:" << endl;
-	cout << "---------------------" << endl;
-	cout << "NUMBER OF GRIDPOINTS: " << GRIDPOINTS << endl;
-       cout << "LENGTH OF THE SYSTEM [fm]: " << GRIDLENGTH << endl;	
-	cout << "\n";
-	cout << "---------------------" << endl;
-	cout << "DISSIPATION:" << endl;
-	cout << "---------------------" << endl;
-	cout << "SHEARVISCOSITY ETA/S [1/fm^3]: " << SHEARCONST << endl;
-	cout << "\n";
-	cout << "---------------------" << endl;
-	cout << "NUMERICAL SCHEME:" << endl;
-	cout << "---------------------" << endl;
-	cout << SCHEME << endl;
-	cout << "\n";
-	cout << "---------------------" << endl;
-	cout << "SLOPE LIMITER FOR MUSCL SCHEME:" << endl;
-	cout << "---------------------" << endl;
-	cout << SLIMITER << endl;
-	cout << "\n";
-	cout << "---------------------" << endl;
-	cout << "EQUATION OF STATE:" << endl;
-	cout << "---------------------" << endl;
-	cout << WHICHEOS << endl;
-	cout << "\n";
-	cout << "---------------------" << endl;
-	cout << "DISSIPATION:" << endl;
-	cout << "---------------------" << endl;
-	cout << VISCOUS << endl;
-}
-
-
-

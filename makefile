@@ -1,2 +1,4 @@
 all:
-	g++ hydro.cpp -std=c++11 -Wall -o hydro -lgsl -lgslcblas -lm -openmp 
+	g++ hydro.cpp -o hydro -lgsl -lgslcblas -lm -fopenmp 
+	#g++-7 hydro.cpp -o hydro -lgsl -lgslcblas -lm -fopenmp 
+	#clang++ hydro.cpp -o hydro -lgsl -lgslcblas -lm -fopenmp 
