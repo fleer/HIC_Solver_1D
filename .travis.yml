@@ -1,3 +1,4 @@
+sudo: required
 language: cpp
 matrix:
   allow_failures:
@@ -144,7 +145,3 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install gcc; brew reinstall gcc --without-multilib; travis_wait brew install gsl; fi
 
 script: make CXX=$COMPILER
-
-sudo: required
-script: make
-
