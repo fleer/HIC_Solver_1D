@@ -12,12 +12,45 @@ matrix:
             - g++-4.9
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
-        
-    - os: osx
-      osx_image: xcode8.2
+
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
       env:
-        - MATRIX_EVAL="CC=gcc-4.9 --without-multilib && CXX=g++-4.9"
-          
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+      env:
+        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        
+   - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="brew install gcc5 --without-multilib && CC=gcc-5 && CXX=g++-5"
+
         
 # refer: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60670
 # for install a gcc on mac with OpenMP support
@@ -28,6 +61,6 @@ before_install:
       tar -xzvf gsl-2.4.tar.gz;
       pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd;
       fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install gcc; brew reinstall gcc --without-multilib; travis_wait brew install gsl; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait brew install gsl; fi
 
 script: make CXX=$COMPILER
