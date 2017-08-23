@@ -33,27 +33,15 @@ matrix:
           packages:
             - g++-6
       env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-        
-   - os: osx
+    - os: osx
       osx_image: xcode8
       env:
-        - MATRIX_EVAL="brew install gcc5 --without-multilib && CC=gcc-5 && CXX=g++-5"
+         - MATRIX_EVAL="brew install gcc5 --without-multilib && CC=gcc-5 && CXX=g++-5"
 
         
-# refer: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60670
-# for install a gcc on mac with OpenMP support
+		 
 before_install:
   - eval "${MATRIX_EVAL}"
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then 
