@@ -259,12 +259,16 @@ int main()
 	iRIGHT2.baryon=eofstate->get_baryondensity(iRIGHT2.temperature, iRIGHT2.chempot)*fermi3;
 	iRIGHT2.soundvel=eofstate->get_soundvel(iRIGHT2.temperature);
 
-	//Stoerung
-	PERT.pressure=eofstate->get_pressure(PERT.temperature);
-	PERT.energy=eofstate->get_energy(PERT.temperature);
-	PERT.gamma=1/sqrt(1-(pow(PERT.velx,2)));
-	PERT.baryon=eofstate->get_baryondensity(PERT.temperature, PERT.chempot)*fermi3;
-	PERT.soundvel=eofstate->get_soundvel(PERT.temperature);
+	//-------------------------------------------------
+	// Pertubation
+    // If no pertubation applied, the gridpoint has
+    // the same values as L2
+	//-------------------------------------------------
+	PERT.pressure=eofstate->get_pressure(PERT.temperature + iLEFT2.temperature);
+	PERT.energy=eofstate->get_energy(PERT.temperature + iLEFT2.temperature);
+	PERT.gamma=1/sqrt(1-(pow(PERT.velx + iLEFT2.velx,2)));
+	PERT.baryon=eofstate->get_baryondensity(PERT.temperature + iLEFT2.temperature, PERT.chempot)*fermi3;
+	PERT.soundvel=eofstate->get_soundvel(PERT.temperature + iLEFT2.temperature);
 
 
 
