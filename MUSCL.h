@@ -331,14 +331,6 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 			//minmod slope limiter
 			if(SLIMITER== "MINMOD") SLOPE=minmod(DSCONSL/DX[I],DSCONSR/DX[I]); 
-			//superbee limiter 
-			else if(SLIMITER== "SUPERBEE") SLOPE=superbee(DSCONSL/DX[I],DSCONSR/DX[I]);
-			//monotonised central-difference limiter (MC) (van Leer, 1977)
-			else if(SLIMITER== "MC")	
-			{
-				double DSCONSM=SCONS[I+1][K]-SCONS[I-1][K];
-				SLOPE=mc(DSCONSM/(2*DX[I]),2*DSCONSL/DX[I],2*DSCONSR/DX[I]);	
-			}
 			//GODUNOV METHOD WITH SLOPE=0;
 			else if(SLIMITER== "GODUNOV") SLOPE=0;	
 			else
@@ -557,40 +549,3 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 	return SIGNA*max(0.,min(fabs(A),B*SIGNA));
 }
 
-
-//---------
-//MONOTISED CENTRAL-DIFFERENCE (MC) (VAN LEER 1977)
-//REZZOLLA P. 428
-//---------
-
-	double MUSCL::mc(double A, double B, double C)
-{
-	if(A >0 && B >0 && C >0)
-		return min(A,min(B,C));
-	else if(A <0 && B <0 && C <0)
-		return max(A,max(B,C));
-	else return 0.;
-}
-
-
-//---------
-//SUPERBEE LIMITER (ROE 1985)
-//REZZOLLA P. 428
-//---------
-
-	double MUSCL::maxmod(double A, double B)
-{
-	if(fabs(A) > fabs(B) && A*B > 0)
-		return A;
-	else if(fabs(B) > fabs(A) && A*B > 0) 
-		return B;
-	else
-		return 0.;
-}
-	double MUSCL::superbee(double A, double B)
-{
-	double sig1, sig2;
-	sig1=minmod(2*A,B);
-	sig2=minmod(A,2*B);
-	return maxmod(sig1,sig2);
-}

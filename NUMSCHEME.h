@@ -27,11 +27,3 @@ public:
 //-------------------------------------------------
 
 #include "MUSCL.h"
-
-
-//-------------------------------------------------
-// Einbinden der Header fuer die 1+1 Dimensionale PPM-Methode
-// (Wird in der Masterarbeit nicht verwendet)
-//-------------------------------------------------
-
-#include "PPM.h"

@@ -338,16 +338,13 @@ int main()
 	//	+ MUSCL --> MUSCL-HANCOCK-Methode
 	//-------------------------------------------------
 
-	if(SCHEME== "PPM")
-		nscheme = new PPM (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT1,iLEFT2,iRIGHT1,iRIGHT2,PERT,GVAR,X,DX);
-	else {
-		if(SCHEME== "MUSCL")
-			nscheme = new MUSCL (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT1,iLEFT2,iRIGHT1,iRIGHT2, PERT, GVAR,X,DX,SLIMITER);
-		else {
-			cout << "(SCHEME) WRONG INPUT!!!" << endl;
-			return 0;
-		}
-	}
+    if(SCHEME== "MUSCL")
+        nscheme = new MUSCL (eofstate,GRIDPOINTS,GRIDLENGTH,iLEFT1,iLEFT2,iRIGHT1,iRIGHT2, PERT, GVAR,X,DX,SLIMITER);
+    else {
+        cout << "(SCHEME) WRONG INPUT!!!" << endl;
+        return 0;
+    }
+	
 
 
 	//-------------------------------------------------
