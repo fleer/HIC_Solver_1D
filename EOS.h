@@ -1,17 +1,12 @@
 //-------------------------------------------------
-// Header mit Zustandsgleichungen 
-// 	+ Ideales Gluongas aus
+// Class Template for Equations of state
+//
+// 	+ Free Gluon Gas 
 // 	  E. Molnar, H. Niemi and D.H. Rischke, 
 // 	  The European Physical Journal C 65 (2009) 615
 // 	+ QCD
 // 	  Z. Fodor et al., 
 // 	  Journal of High Energy Physics 2010 (2010) 77  
-//-------------------------------------------------
-
-
-//-------------------------------------------------
-// Klasse EOS als Template zur einfachen Implementierung weiterer
-// Zustandsgleichungen
 //-------------------------------------------------
 
 class EOS 
@@ -30,8 +25,8 @@ class EOS
 	private:
 
 		//-------------------------------------------------
-		// Funktionen fuer den Algorithmus zur Wiederherstellung
-		// der primitiven Variablen
+        // Function for algorithm to recover the primitive 
+        // variables
 		//-------------------------------------------------
 
 		double fprimitive( double * cons, double p);
@@ -72,15 +67,16 @@ double EOS::recovery( double * cons)
 	double abb2=0;
 
 	//-------------------------------------------------
-	//
-	// Newton-Rhapson-Verfahren
-	//
-	// Raten eines Anfangsdrucks fuer das Newton-Rhapson-Verfahren
-	// Hier: Druck fuer Temperatur T=400 MeV
-	// Sehr unelegant, fuehrt aber im Gegensatz zur eleganteren
-	// Variante
+    // Newton-Rhapson-Algorithm
+    //
+    // Here the initial pressure for the Newton-
+    // Rhapson-Algorithm is chosen through a well 
+    // educated guess.
+    // Here: Presser of Temperatur T=400 MeV
+    // This is not very elegant, but avoids problmes
+    // in contrast to the more elegant way of computing
+    // the initial pressure via
 	// 		IP=fabs(fabs(cons[1])-cons[2]-cons[0]);
-	// nie zu Problemen
 	//-------------------------------------------------
 
 	IP=get_pressure(400);
@@ -108,7 +104,7 @@ double EOS::recovery( double * cons)
 }
 
 ///-----------------
-// QCD-Zustandsgelichung aus 
+// QCD-Eos, taken from
 // Z. Fodor et al., Journal of High Energy Physics 2010 (2010) 77
 //----------------
 
@@ -143,7 +139,7 @@ private:
 
 
 //-------------------------------------------------
-// Definition der Anomalie I
+// Definition of Anomalie I
 //-------------------------------------------------
 
 double anomaly(double x)
@@ -155,8 +151,9 @@ double anomaly(double x)
 
 
 //-------------------------------------------------
-// Berechnung des Drucks aus der Temperatur
-// Integration mit gsl_integration_qags aus der mathgl-Bibliothek
+// Compute pressure from temperature
+// Integration with gsl_integration_qags from 
+// mathgl library
 //-------------------------------------------------
 
 double QCD::get_pressure(double TEMP)
@@ -177,9 +174,9 @@ double QCD::get_pressure(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung der Temperatur aus gegebenem Druck
-// Anfangstemperatur fuer das Newton-Rhapson-Verfahren ist T=1 GeV
-// Nicht sehr schoen, aber es funktioniert
+// Compute temperature from given pressure
+// Initial temperature for Newton-Rhapson is T=1 Gev
+// Not very elegant, but it works
 //-------------------------------------------------
 
 double QCD::get_temperature(double P)
@@ -219,7 +216,7 @@ double QCD::get_temperature(double P)
 
 
 //-------------------------------------------------
-// Berechnung der Energiedichte
+// Computation of energy density
 //-------------------------------------------------
 
 double QCD::get_energy(double TEMP)
@@ -229,7 +226,7 @@ return (anomaly(TEMP)*pow(TEMP,4))+(3*get_pressure(TEMP));
 
 
 //-------------------------------------------------
-// Berechnung der Beyondichte mit Hilfe der Suszeptibilitaet
+// Compute baryon density via susceptibility
 //-------------------------------------------------
 
 double QCD::get_baryondensity(double TEMP, double NB)
@@ -244,7 +241,7 @@ double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 
 
 //-------------------------------------------------
-// Berechnung der Suszeptibilitaet
+// Compute susceptibility
 //-------------------------------------------------
 
 double QCD::get_susceptibility(double TEMP)
@@ -257,7 +254,7 @@ double QCD::get_susceptibility(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung der Ableitung der Suszeptibilitaet
+// Compute derivative of susceptibility
 //-------------------------------------------------
 
 double QCD::get_deriv_susceptibility(double TEMP)
@@ -270,7 +267,7 @@ double QCD::get_deriv_susceptibility(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung des quadrates der Schallgeschwindigkeit
+// Compute square of sound velocity
 //-------------------------------------------------
 
 double QCD::get_soundvel(double TEMP)
@@ -286,7 +283,7 @@ double QCD::get_soundvel(double TEMP)
 
 
 //-----------------
-// Zustandsgelichung eines freien Gluon-Gases
+// EoS of free Gluon Gas 
 // E. Molnar, H. Niemi and D.H. Rischke, 
 // The European Physical Journal C 65 (2009) 615
 //----------------
@@ -306,7 +303,7 @@ class GAS : public EOS
 
 
 //-------------------------------------------------
-// Berechnung des Drucks aus der Temperatur
+// Compute pressure from temperature
 //-------------------------------------------------
 
 double GAS::get_pressure(double TEMP)
@@ -316,7 +313,7 @@ double GAS::get_pressure(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung der Temperatur aus gegebenem Druck
+// Compute temperature from pressure
 //-------------------------------------------------
 
 double GAS::get_temperature(double P)
@@ -326,7 +323,7 @@ double GAS::get_temperature(double P)
 
 
 //-------------------------------------------------
-// Berechnung der Energiedichte
+// Compute energy density
 //-------------------------------------------------
 
 double GAS::get_energy(double TEMP)
@@ -336,7 +333,7 @@ double GAS::get_energy(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung der Beyondichte mit Hilfe der Suszeptibilitaet
+// Compute baryon density via susceptibility
 //-------------------------------------------------
 
 double GAS::get_baryondensity(double TEMP, double NB)
@@ -351,7 +348,7 @@ double GAS::get_baryondensity(double TEMP, double NB)
 
 
 //-------------------------------------------------
-// Berechnung der Ableitung der Suszeptibilitaet
+// Compute susceptibility
 //-------------------------------------------------
 
 double GAS::get_susceptibility(double TEMP)
@@ -364,7 +361,7 @@ double GAS::get_susceptibility(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung der Ableitung der Suszeptibilitaet
+// Compute derivative of susceptibility
 //-------------------------------------------------
 
 double GAS::get_deriv_susceptibility(double TEMP)
@@ -376,7 +373,7 @@ double GAS::get_deriv_susceptibility(double TEMP)
 
 
 //-------------------------------------------------
-// Berechnung des quadrates der Schallgeschwindigkeit
+// Compute square of sound velocity
 //-------------------------------------------------
 
 double GAS::get_soundvel(double TEMP)

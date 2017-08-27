@@ -20,27 +20,27 @@ class MUSCL: public NUMSCHEME
 	MUSCL(EOS * F, int N, double S, STATE iLEFT1, STATE iLEFT2, STATE iRIGHT1, STATE iRIGHT2, STATE PERT, double **VAR, double *POSITION, double *XSTEP, string SL): EOFSTATE(F), GRIDN(N), SLIMITER(SL), SYSTEMLENGTH(S) 
 	{
 		
-//-------------------------------------------------
-// Parameter fuer Landau-Modell
-// Definierte Breite der Kollisionsflaeche fuer AU-Nukleus mit
-// R=6.5 fm
-// Lorentz-Faktor von 100
-// RHIC Energie --> sqrt(SNN)=200 MeV
-//-------------------------------------------------
+    //-------------------------------------------------
+    // Parameters for Landau-Model
+    // Define width of collisionsurface for AU-Nucelus
+    // with R=6.5fm
+    // Lorentz-Factor: 100
+    // RHIC Energy --> sqrt(SNN)=200 MeV
+    //-------------------------------------------------
 
 		double NUCL=0.065;
 
-//-------------------------------------------------
-// 1/2 Breite der Stoerung
-//-------------------------------------------------
+    //-------------------------------------------------
+    // 1/2 width of pertubation
+    //-------------------------------------------------
 		
 		double PERTL=0.005;
 
 
-//-------------------------------------------------
-// Initialisierung der Variablen &
-// Fuellen des Gitters
-//-------------------------------------------------
+    //-------------------------------------------------
+    // Initialize variables
+    // Fill the grid
+    //-------------------------------------------------
 
 		ZERO=4;
 		STOP=GRIDN+4;
@@ -64,9 +64,9 @@ class MUSCL: public NUMSCHEME
 		fill_grid();
 
 		
-//-------------------------------------------------
-// Erstellen der Anfangskonfiguration
-//-------------------------------------------------
+    //-------------------------------------------------
+    // Create start configuration
+    //-------------------------------------------------
 
 		for(int I=ZERO; I<STOP; I++)
 		{
@@ -109,15 +109,15 @@ class MUSCL: public NUMSCHEME
 
 
 //-------------------------------------------------
-// Einbau der Randbedingungen
+// Include boundary conditions
 //-------------------------------------------------
 
 		boundary(VAR);
 
 
 //-------------------------------------------------
-// Einlesen der Baryonzahl und kontrolle, dass fuer 
-// Rechte und Linkte Seite Gleich
+// Read in chemical potential and test that it is
+// equal for both sides
 //-------------------------------------------------
 
 		if(iLEFT1.chempot != iRIGHT1.chempot)
@@ -132,7 +132,7 @@ class MUSCL: public NUMSCHEME
 
 
 //-------------------------------------------------
-// Destruktor
+// Destructor
 //-------------------------------------------------
 
 	~MUSCL() 
@@ -175,8 +175,8 @@ class MUSCL: public NUMSCHEME
 
 
 //-------------------------------------------------
-// Berechnen der 3 Eigenwerte der Gleichungen der
-// idealen relativistischen Hydrodynamik in 1+1 Dim
+// Compute the 3 eigenvalues for the equations of 
+// ideal relativistic hydrodynamics in 1+1 dim
 //-------------------------------------------------
 
 void MUSCL::get_lambda(double *LAMBD1, double *LAMBD2, double *LAMBD3)
@@ -195,7 +195,7 @@ void MUSCL::get_lambda(double *LAMBD1, double *LAMBD2, double *LAMBD3)
 
 
 //-------------------------------------------------
-// Fuellen des Gitters
+// Fill the grid
 //-------------------------------------------------
 
 
@@ -220,7 +220,7 @@ void MUSCL::fill_grid()
 
 
 //-------------------------------------------------
-//Berechnung des naechsten Zeitschrittes (CFL-Bedingung)
+// Compute next time step (CFL-Condition)
 //-------------------------------------------------
 
 
@@ -244,7 +244,7 @@ double MUSCL::timestep(double CFL, double iDT, double *LAMBD1, double *LAMBD3)
 
 
 //-------------------------------------------------
-// Randbedingungen
+// Boundary conditions
 //-------------------------------------------------
 
 void MUSCL::boundary(double **VAR)
@@ -278,7 +278,7 @@ double MUSCL::get_timestep()
 
 
 //-------------------------------------------------
-// Berechnung des naechsten Zeitschrittes
+// Compute next time step
 //-------------------------------------------------
 
 void MUSCL::evaluate(double **VAR, double TIMESTEP)
@@ -297,11 +297,11 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 	get_lambda(LAMBD1,LAMBD2,LAMBD3);
 
-	//CFL-Nummer= 0.4  
+	//CFL-Number= 0.4  
 	DT=timestep(0.4,TIMESTEP,LAMBD1,LAMBD3);
 
 	//-------------------------------------------------
-	// Berechnen der konservativen Variablen
+    // Compute conservative variables
 	//-------------------------------------------------
 
 	for(int I=ZERO-2; I<STOP+2 ;I++) 
@@ -341,7 +341,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 			//-------------------------------------------------
-			// Rekonstruktion von UL und UR
+			// Reconstruction of UL and UR
 			//-------------------------------------------------
 
 			VARL[I][K]=SCONS[I][K]-SLOPE*0.5*DX[I];
@@ -357,7 +357,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Wiederherstellung der primitiven Variablen fuer VARL
+    // Reconstruction of primitive variables for VARL
 	//-------------------------------------------------
 #pragma omp parallel for
 	for(int I=ZERO-1; I<STOP+1; I++) 
@@ -367,7 +367,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Berechnung der regulaeren Fluesse FLUXL
+    // Compute regular flux FLUXL
 	//-------------------------------------------------
 
 	for (int I=ZERO-1; I<STOP+1; I++)
@@ -378,7 +378,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 	}
 
 	//-------------------------------------------------
-	// Wiederherstellung der primitiven Variablen fuer VARR
+    // Reconstruction of primitive variables for VARR
 	//-------------------------------------------------
 
 #pragma omp parallel for
@@ -389,7 +389,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Berechnung der regulaeren Fluesse FLUXR
+    // Compute regular flux FLUXL
 	//-------------------------------------------------
 
 	for (int I=ZERO-1; I<STOP+1; I++)
@@ -401,7 +401,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Entwicklung von UL und UR um Delta t/2
+    // Evolution of UL and UR about delta t/2
 	//-------------------------------------------------
 
 	for (int I=ZERO-1; I<STOP+1; I++)
@@ -414,7 +414,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Effektive linke Zustaende
+    // Effective left states
 	//-------------------------------------------------
 
 #pragma omp parallel for
@@ -438,7 +438,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Effektive linke Zustaende
+    // Effective right states
 	//-------------------------------------------------
 
 #pragma omp parallel for
@@ -469,7 +469,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Zeitliche Entwicklung der effektiven Variablen
+    // Temporal evolution of effective variables
 	//-------------------------------------------------
 
 	for(int I=ZERO; I<STOP; I++) 
@@ -480,7 +480,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Falls Baryondichte --> 0
+    // If baryon density --> 0
 	//-------------------------------------------------
 
 	for(int I=ZERO; I<STOP; I++) 
@@ -490,7 +490,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 	//-------------------------------------------------
-	// Wiederherstellung der primitiven Variablen
+    // Reconstruct primitive variables
 	//-------------------------------------------------		
 
 #pragma omp parallel for
@@ -506,7 +506,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 
 //-------------------------------------------------
-// Algorithmus fuer Wiederherstellung der primitiven Variablen
+// Algorithm for recovery of primitive variables
 //-------------------------------------------------
 
 	void MUSCL::primrecovery(double *VAR, double *SCONS)
@@ -519,7 +519,7 @@ void MUSCL::evaluate(double **VAR, double TIMESTEP)
 
 	
 //-------------------------------------------------
-// Testen ob Baryondichte unphysikalisch ist
+// Test if baryon density is unphysical
 //-------------------------------------------------
 
 	if(VAR[0] > 1) 

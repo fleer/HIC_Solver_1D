@@ -16,22 +16,7 @@
 //	g++ HYDRO.cpp -std=c++11 -Wall -o hydro -lm -lgsl -fopenmp 
 //
 //
-//Programm zur numerischen Simulation von Quark-Gluon-Plasma
-//in Schwerionenkollisionen mit Hilfe von relativistischer Hydrodynamik
-// 
-// 
-//
-//	Es enthaelt:
-//		+ Berechnungen in 1+1 Dimensionen
-//		+ MUSCL-HANCOCK Scheme
-//		+ Beruecksichtigung dissipativer Effekte 
-//		    (ISRAEL-STEWARD-THEORIE)
-//		+ Variable Anfangsbedingungen:
-//			- Shocktube-Problem
-//			- Landau-Modell
-//		    - Einbau einer moeglichen Stoerung
-//	Compilieren mit:
-//	g++ HYDRO.cpp -std=c++11 -Wall -o hydro -lm -lgsl -fopenmp 
+//  Author: Sascha Fleer
 //-------------------------------------------------
 //-------------------------------------------------
 
@@ -49,8 +34,6 @@
 
 //-------------------------------------------------
 // Include library for OPENMP, if supported
-//
-// Eibinden der Bibliothekt fuer OPENMP, falls es unterstuetzt wird 
 //-------------------------------------------------
 
 #ifdef _OPENMP
@@ -65,8 +48,6 @@ using std::min;
 
 //-------------------------------------------------
 // Create STRUCTURE for initial conditions of problem
-//
-// Erstellen einer STRUCTURE fuer die Anfangsbedingungen des Problems
 //-------------------------------------------------
 struct STATE 
 {
@@ -88,9 +69,6 @@ struct STATE
 // To get usefull units of pressure and energy, 
 // multiply with fermi^3
 // --> New Unit: Mev^3/fm^3
-//
-// Fuer die Sinnvolle Einheiten von Druck und Energie multipliziere mit fermi^3 
-// --> Erhaelt Einheiten von (Mev^3/fm^3)
 //-------------------------------------------------
 
 double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
@@ -104,14 +82,6 @@ double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 // 	+ QCD, taken from
 // 	  Z. Fodor et al., 
 // 	  Journal of High Energy Physics 2010 (2010) 77  
-//
-// Header mit Zustandsgleichungen 
-// 	+ Ideales Gluongas aus
-// 	  E. Molnar, H. Niemi and D.H. Rischke, 
-// 	  The European Physical Journal C 65 (2009) 615
-// 	+ QCD
-// 	  Z. Fodor et al., 
-// 	  Journal of High Energy Physics 2010 (2010) 77  
 //-------------------------------------------------
 
 #include "EOS.h"
@@ -119,8 +89,6 @@ double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 
 //-------------------------------------------------
 // Include numerical schemes
-//
-// Header mit numerischen Schemes 
 //-------------------------------------------------
 
 #include "NUMSCHEME.h"
@@ -133,13 +101,6 @@ double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 //		  Journal of computational physics 230 (2011) 7002
 //		- Y. Akamatsu et al., 
 //		  arXiv.org (2013) 34, 1302.1665 
-//
-// Header fuer Dissipation
-//  + Algorithmus nach
-//	    - M. Takamoto and S.i. Inutsuka,
-//		  Journal of computational physics 230 (2011) 7002
-//		- Y. Akamatsu et al., 
-//		  arXiv.org (2013) 34, 1302.1665 
 //-------------------------------------------------
 
 #include "DISSIPATION.h"
@@ -147,8 +108,6 @@ double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 
 //-------------------------------------------------
 // Read in 'input.ini'
-//
-// Funktion zum Einlesen der 'input.ini'
 //-------------------------------------------------
 
 void readin(STATE * L1,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS); 
@@ -158,16 +117,12 @@ int main()
 {
 	//-------------------------------------------------
 	// Initialize the initial states
-	// Initialisierung der Anfangszustaende
 	//-------------------------------------------------
 
 	STATE iLEFT1(0), iRIGHT1(1), iLEFT2(0), iRIGHT2(1);
 
 	//-------------------------------------------------
     // Initialize pertubation state
-    //
-	// Initialisierung der Stoerung (Es ist egal ob sie als linker (0)
-	// oder rechter (1)  Zustand initialisiert wwird 
 	//-------------------------------------------------
 
 	STATE PERT(0);
@@ -176,8 +131,6 @@ int main()
 
 	//-------------------------------------------------
     // Initialize equation of state and numerical scheme
-	//
-	// Initialisierung der Zustandsgleichung und des numerischen Schemes
 	//-------------------------------------------------
 
 	EOS * eofstate;
@@ -188,33 +141,25 @@ int main()
 
 	//-------------------------------------------------
     // Initialization of some systemspecific variables
-    //
-	// Initialisierung einiger Systemspezifischer Variablen
 	//-------------------------------------------------
 
 
     // Scheme, Slope-Limiter, which EoS, dissipation?
-	// Scheme, Slope-Limiter, Welche Zustandsgleichung, Dissipation?
 	string SCHEME, SLIMITER, WHICHEOS, VISCOUS;
 	int yesno=0, bulkyes=0;
 
 	// end-time, time-discretization, length of system
-	// Endzeitpunkt, Zeitdiskretisierung, Systemlaenge
 	double STOPTIME, DELTAT, GRIDLENGTH;
 	STOPTIME=DELTAT=GRIDLENGTH=0;
 
     // number of gridpoints
-	// Anzahl der Gitterpunkte
 	int GRIDPOINTS;
 	GRIDPOINTS=0;
 
     // Matrix for primitive variables in each gridpoint
-	// Matrix fuer die primitiven Variablen an jedem Gitterpunkt
 	double **GVAR;
 
     // Vector for x-coordinate and spatial discretization in each point
-	// Vektoren fuer x-Koordinate und Ortsdiskretisierung an jedem Punkt
-	// (Vektoren falls das Programm auf allgemeinere Korrdinatensysteme erweitert wird)
 	double *X , *DX;
 
 
@@ -222,9 +167,6 @@ int main()
 	//-------------------------------------------------
     // Initialization of variables needed for 
     // the computation of dissipation
-    //
-	// Initialisierung der Variablen, die fuer 
-    // Dissipation gebraucht werden
 	//-------------------------------------------------
 
 	// eta/s 
@@ -242,8 +184,6 @@ int main()
 
 	//-------------------------------------------------
     // Variables for tracking computation-time
-	// 
-	// Variablen fuer die Berechnung der Rechenzeit 
 	//-------------------------------------------------
 
 	time_t now, later;
@@ -253,9 +193,6 @@ int main()
 	//-------------------------------------------------
     // Test if OPENMP is supported
     // Print number of usable CPUs 
-    //
-	// Test, ob OPENMP nutzbar
-	// Ausgabe der # der nutzbaren CPUs
 	//-------------------------------------------------
 
 #ifdef _OPENMP
@@ -273,8 +210,6 @@ int main()
 
 	//-------------------------------------------------
 	// Read in parameters from 'input.ini'
-    //
-	// Einlesen der Parameter aus 'input.ini'
 	//-------------------------------------------------
 
 	readin(&iLEFT1,&iLEFT2, &iRIGHT1, &iRIGHT2, &PERT, &STOPTIME, &DELTAT, &GRIDPOINTS, &GRIDLENGTH, &SHEARCONST, &SCHEME, &SLIMITER, &WHICHEOS, &VISCOUS); 
@@ -301,13 +236,11 @@ int main()
 
 	//-------------------------------------------------
     // Fill structures with help of EoS
-    //
-	// Fuellen der Structures mit Hilfe der Zustandsgleichung
 	//-------------------------------------------------
 
 	iLEFT1.pressure=eofstate->get_pressure(iLEFT1.temperature);
 	iLEFT1.energy=eofstate->get_energy(iLEFT1.temperature);
-	//Gamma-Faktor 1-Dim	
+	//Gamma-Factor 1-Dim	
 	iLEFT1.gamma=1/sqrt(1-(pow(iLEFT1.velx,2)));
 	iLEFT1.baryon=eofstate->get_baryondensity(iLEFT1.temperature, iLEFT1.chempot)*fermi3;
 	iLEFT1.soundvel=eofstate->get_soundvel(iLEFT1.temperature);
@@ -343,9 +276,6 @@ int main()
 	//-------------------------------------------------
     // Initialize the Grid
     // Gridsize [START-4 : STOP+4]
-    //
-	// Initialisierung des Gitters
-	// Gittergroesse [START-4:STOP+4]
 	//-------------------------------------------------
 
 	X = new double [GRIDPOINTS+8];
@@ -362,11 +292,6 @@ int main()
     //  + Startvelocity
     //  + Velocity - Riemann-Problem
     //  + Matrix to save all variables temporary
-    //
-	// Speichern von Variablen fuer Dissipationsalgortihmus
-	//	+ Anfangsgeschwindigkeit
-	//	+ Geschwindigkeit nach Riemann-Problem
-	//	+ Matrix zum Zwischenspeichern aller Variablen
 	//-------------------------------------------------
 
 	VINITIAL = new double  [GRIDPOINTS+8];
@@ -377,8 +302,6 @@ int main()
 
 	//-------------------------------------------------
     // Relaxation time
-    //
-	// Relaxationszeit
 	//-------------------------------------------------
 
 	TAUETA= new double  [GRIDPOINTS+8];
@@ -386,8 +309,6 @@ int main()
 
 	//-------------------------------------------------
     // Varaibles for shear and bulk viscosity
-    //
-	// Variablen fuer Scher- (PXX) und Dehnviskositaet (BULK)
 	//-------------------------------------------------
 
 	PXX= new double  [GRIDPOINTS+8];
@@ -396,10 +317,6 @@ int main()
 
 	//-------------------------------------------------
 	// Const. zeta for bulk viscosity
-    //
-    // Konstantes zeta fuer Dehnviskositaet
-	// (Vektor, weil Abhaengig von Schallgeschwindigkeit 
-	// und damit an unterschiedlichen Gitterpunkten verschieden)
 	//-------------------------------------------------
 
 	BULKCONST= new double  [GRIDPOINTS+8];
@@ -414,8 +331,6 @@ int main()
 
 	//-------------------------------------------------
     // Variable for Progress bar
-    //
-	// Variable fuer Progressbar
 	//-------------------------------------------------
 
 	int barWidth=70;
@@ -424,11 +339,6 @@ int main()
     // Initialize numerical scheme with initial 
     // parameters
 	//	+ MUSCL --> MUSCL-HANCOCK-Method
-    //  
-    //
-	// Initialisierung des numerischen Schemes mit 
-    // Anfangsparametern
-	//	+ MUSCL --> MUSCL-HANCOCK-Methode
 	//-------------------------------------------------
 
     if(SCHEME== "MUSCL")
@@ -444,10 +354,6 @@ int main()
     // START of main function
 	//	+ FN --> Timestep 
 	//	+ FTIME --> Complete Time [fm]
-    //
-	// START des eigentlichen Programmes 
-	//	+ FN --> # Zeitschritt
-	//	+ FTIME --> Gesamtzeit [fm]
 	//-------------------------------------------------
 
 	float progress = 0.0;
@@ -458,8 +364,6 @@ int main()
 
 	//-------------------------------------------------
     // Open files for contour-plot-data of primitve variables
-    //
-	// Datenausgabe fuer Contourplot der primitiven Variablen
 	//-------------------------------------------------
 
 	fstream c_output_p, c_output_v, c_output_n;
@@ -473,8 +377,6 @@ int main()
     // Open files to store data of every time step
     // Files are saved in "./DATA/" folder, which has to
     // be creatd manually!
-    //
-	// Datenausgabe des Anfangszustandes (t=0) in "DATA/output_0.txt"
 	//-------------------------------------------------
 
 	fstream output;
@@ -515,8 +417,6 @@ int main()
 
 	//-------------------------------------------------
     // START of main-loop
-    //
-	// START der Zeitschleife
 	//-------------------------------------------------
 
 	while(	FTIME <= STOPTIME)
@@ -524,8 +424,6 @@ int main()
 
 		//-------------------------------------------------
         // Create progress bar
-        //
-		// Erstellen eienr Progressbar
 		//-------------------------------------------------
 
 		std::cout << "[";
@@ -540,8 +438,6 @@ int main()
 
 		//-------------------------------------------------
         // Initialize boundary conditions
-        //
-		// Nutzung der Randbedingungen
 		//-------------------------------------------------
 
 		nscheme->boundary(GVAR);
@@ -549,9 +445,6 @@ int main()
 
 		//-------------------------------------------------
         // Compute relaxation time
-		//	+ tau=1/T
-        //
-		// Berechnung der Relaxationszeit 
 		//	+ tau=1/T
 		//-------------------------------------------------
 
@@ -569,9 +462,6 @@ int main()
 
             // Check if DELTAT is small enough as DELTAT>TAU
             // If not, decrease it
-            //
-			//Routinecheck, ob DELTAT klein genug, da gelten muss DELTAT>TAU
-			//Ansonsten DELTAT kleiner machen
 
 			if(DELTAT>TAUETA[I] || DELTAT==TAUETA[I]) DELTAT=TAUETA[I]*0.1;
 
@@ -584,9 +474,6 @@ int main()
 		//-------------------------------------------------
         // Temporal evolution of primitive variables GVAR
         // under influence of the chosen numerical scheme
-        //
-		// Zeitliche Entwicklung der primitiven Variablen 
-        // GVAR mit gewaehltem numrischen Scheme
 		//-------------------------------------------------
 
 		nscheme->evaluate(GVAR,DELTAT);
@@ -595,9 +482,6 @@ int main()
 		//-------------------------------------------------
         // Save primitive variables for dissipation
         // algorithm
-        //
-		// Speichern der Primitiven Variablen fuer 
-        // Dissipationsalgorithmus
 		//-------------------------------------------------
 		for(int I=ZERO; I< STOP; I++)
 			VRIEMANN[I]=GVAR[I][1];
@@ -631,16 +515,12 @@ int main()
 		//-------------------------------------------------
 		// Compute nex time-step (CFL-Condition, 
         // CFL-Number:0.4)
-		// 
-        // Berechnung des naechsten Zeitschrittes 
-        // (CFL-Bedingung, CFL-Nummer:0.4)
 		//-------------------------------------------------
 
 		FTIME=FTIME+nscheme->get_timestep();
 
 		//-------------------------------------------------
 		// Save data to "DATA/output_*.txt"
-		// Datenausgabe in "DATA/output_*.txt"
 		//-------------------------------------------------
 
 		fstream output;
@@ -691,8 +571,6 @@ int main()
 
 	//-------------------------------------------------
     // Close files for contour plots
-    //
-	// Schliessen der Dateien fuer Contourplots
 	//-------------------------------------------------
 
 	c_output_p.close();
@@ -703,8 +581,6 @@ int main()
 
 	//-------------------------------------------------
 	// Print computation time
-    //
-    // Rechenzeit
 	//-------------------------------------------------
 
 	time(&later);
@@ -717,8 +593,6 @@ int main()
 
 //-------------------------------------------------
 // Read in parameters from 'input.ini'
-//
-// Einlesen der Parameter aus 'input.ini'
 //-------------------------------------------------
 
 void readin(STATE * L1 ,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS) 

@@ -1,12 +1,12 @@
 //-------------------------------------------------
-// Einbinden der Header mit dem approximaitven Riemann-Solver aus
+// Include approximative Riemann-Solver from
 // Y. Akamatsu et al., arXiv.org (2013) 34, 1302.1665
 //-------------------------------------------------
 
 
 
 //-------------------------------------------------
-// Klasse zum erstellen der Linken und Rechten Anfangszustaende
+// Class for creation of left and right initial states
 //-------------------------------------------------
 
 class RSOLVER 
@@ -48,7 +48,7 @@ class RSOLVER
 
 
 //-------------------------------------------------
-// Berechnung der Geschwindigkeit
+// Compute velocity
 // Akamatsu et. al (2013) Eq: (30)
 //-------------------------------------------------
 
@@ -66,7 +66,7 @@ double RSOLVER::velocity(double T)
 
 
 //-------------------------------------------------
-// Berechnung der Ableitung der Geschwindigkeit
+// Compute derivative of velocity
 // Akamatsu et. al (2013) Eq: (35)
 //-------------------------------------------------
 
@@ -86,7 +86,7 @@ return (((zeta(P,E,CS)+zeta2)*(1-(iVEL*velocity(T))))-velocity(T))/(D+((P-iP)*((
 
 
 //-------------------------------------------------
-// Berechnung der Geschwindigkeit
+// Compute velocity
 // Akamatsu et. al (2013) Eq: (27)
 //-------------------------------------------------
 
@@ -99,10 +99,11 @@ double RSOLVER::baryondensity(double T)
 
 
 //-------------------------------------------------
-// Berechnung des quadrates des Baryonflusses
-// Fuer p-pS und e-eS --> 0 wird J numerisch inkorrekt.
-// In diesem Fall wird zum Analytischen Wert J(cS) mit 
-// cS der Schallgeschwindigkeit gewechselt
+// Compute square of Baryon flux
+// p-pS and e-eS --> 0 leads to numerical incorrect
+// values for J.
+// In this case, switch to analytical value J(cS) with
+// cS as the sound velocity
 // Akamatsu et. al (2013) Eq: (29)
 //-------------------------------------------------
 
@@ -115,9 +116,8 @@ double RSOLVER::baryonflux(double P, double E, double CS)
 	}
 	else
 	{
-		// Abbruchbedingung, falls J negativ wird
-		// Ausgabe von unterscheidlichen Werten
-		// zur Fehleranalyse
+        // Break, if J gets negative
+        // Print values for error analysis
 		if(J<0){
 			cout << "NEGATIVE J" << endl;
 			cout << "(E-iE): " << (E-iE)<< endl; 
@@ -135,10 +135,10 @@ double RSOLVER::baryonflux(double P, double E, double CS)
 
 
 //-------------------------------------------------
-// Berechnung der Variable zeta
+// Compute zeta
 // Akamatsu et. al (2013) Eq: (31)
-// Das Vorzeichen ist so gewaehlt, 
-// dass + fuer R(1) und - L(0) 
+// THe sign is chosen that
+// + for R(1) and - L(0) 
 //-------------------------------------------------
 
 double RSOLVER::zeta(double P, double E, double CS)
@@ -151,7 +151,7 @@ double RSOLVER::zeta(double P, double E, double CS)
 
 
 //-------------------------------------------------
-// Berechnung der Geschwindigkeit der Stosswelle 
+// Compute velocity of shockwave
 // A. Mignone, T. Plewa and G. Bodo, arXiv.org (2005), astro-ph/0505200v1
 // Eq: (88)
 //-------------------------------------------------
@@ -166,7 +166,7 @@ double RSOLVER::shockvel(double T)
 
 
 //-------------------------------------------------
-// Berechnung der minimalen Wellenegschwindigkeit
+// Compute minimal wave speed
 //-------------------------------------------------
 
 double RSOLVER::wavespeed_min()
@@ -176,7 +176,7 @@ double RSOLVER::wavespeed_min()
 
 
 //-------------------------------------------------
-// Berechnung der maximalen Wellenegschwindigkeit
+// Compute maximal wave speed
 //-------------------------------------------------
 
 double RSOLVER::wavespeed_max()
@@ -186,8 +186,8 @@ double RSOLVER::wavespeed_max()
 
 
 //-------------------------------------------------
-// Ausfuehren des Approximativen Riemann-Solvers
-// und Samplen des Ergebnisses auf x/t
+// Class for Riemann Solver that
+// samples results on x/t
 //-------------------------------------------------
 
 class RIEMANN
@@ -216,7 +216,7 @@ class RIEMANN
 
 
 //-------------------------------------------------
-// Suchen des Drucks pstar im Zwischenzustand
+// Search for pressure pstar in intermediate state
 //-------------------------------------------------
 
 double RIEMANN::pstar()
@@ -231,7 +231,7 @@ double RIEMANN::pstar()
 	double T;
 
 
-	//Raten des Anfangsdruck
+    // Guess initial pressure
 	piterate=0.5*(L->initial_pressure()+R->initial_pressure());
 
 	T=eofstate->get_temperature(piterate);
@@ -242,8 +242,8 @@ double RIEMANN::pstar()
 
 
 		//-------------------------------------------------
-		// Stoppe, wenn die Aenderung des relativen Drucks kleiner ist
-		// als der Fehler  
+        // Stop if difference of relative pressure smaller 
+        // than error
 		//-------------------------------------------------
 
 		abb=(solution-piterate)/(0.5*(piterate+solution));
@@ -258,7 +258,7 @@ double RIEMANN::pstar()
 		else 
 		{
 
-			// Zusaetzliche Routine um Konvergenzprobleme abzufangen
+            // Small routine that covers some convergence issues
 			if(abb2<fabs(abb)+TOLERANZ && abb2>fabs(abb)-TOLERANZ)
 			{
 				return piterate;
@@ -281,7 +281,7 @@ double RIEMANN::pstar()
 
 
 //-------------------------------------------------
-// Fuelle Structure des Zwischenzustandes
+// Fill structure of intermediate state
 //-------------------------------------------------
 
 void RIEMANN::fill_star(RSOLVER * EX,STATE * S, double PS)
@@ -299,8 +299,7 @@ void RIEMANN::fill_star(RSOLVER * EX,STATE * S, double PS)
 
 
 //-------------------------------------------------
-// Samplen der Loesung in x/t
-// um die numerischen Fluesse zu erhalten
+// Sample solutions on x/t to get numerical flux
 // A. Mignone, T. Plewa and G. Bodo, arXiv.org (2005), astro-ph/0505200v1
 //-------------------------------------------------
 
@@ -320,8 +319,8 @@ void RIEMANN::getflux(double *flux)
 
 
 	//-------------------------------------------------
-	// Berechne Lambda je nachdem ob die Welle zwischen S und S* 
-	// eine Stoss- oder Verduennungswelle ist
+    // Compute lambda, depending on the case if the wave
+    // between S and S* is shock or rarefaction wave
 	//-------------------------------------------------
 
 	if(sig < 0) 
@@ -379,7 +378,7 @@ void RIEMANN::getflux(double *flux)
 	}
 
 	//-------------------------------------------------
-	// Berechnung des numerischen Flusses in konservativen Variablen
+    // Compute numerical flux in conservative variables
 	//1. D*v
 	//2. m*v+p
 	//3. m

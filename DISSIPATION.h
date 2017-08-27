@@ -1,5 +1,5 @@
 //-------------------------------------------------
-// Implementation dissipativer Effekte
+// Class for computation of dissipative effects
 //-------------------------------------------------
 
 class DISSIPATION
@@ -26,7 +26,7 @@ class DISSIPATION
 		BULKEVOLVE= new double [GRIDN+8];
 
 //-------------------------------------------------
-// Randbedingungen
+// Boundary conditions
 //-------------------------------------------------
 
 		boundary(VEL);
@@ -65,19 +65,19 @@ class DISSIPATION
 
 
 //-------------------------------------------------
-// Zeitliche Entwicklung der disipativen Groessen &
-// Erzeugen des Flusses fuer die Entwicklung des gesamten Systems
+// Temporal evolution of dissipative variables &
+// creation of the flow, evolving the whole system 
 //-------------------------------------------------
 
 void DISSIPATION::evolve_dissip(double *PXX, double *BULK)
 {
 	boundary(PXX);
 	boundary(BULK);
-	//Variablen fuer Scherviskositaet
+    // Shear viscosity
 		double RELAX[GRIDN+8];
 		double NSPIXX[GRIDN+8];
 
-	//Variablen fuer Dehnviskositaet
+    // Bulk viscisty
 		double BULKRELAX[GRIDN+8];
 		double NSBULK[GRIDN+8];
 
@@ -101,7 +101,7 @@ void DISSIPATION::evolve_dissip(double *PXX, double *BULK)
 
 
 //-------------------------------------------------
-// physikalische Fluesse
+// physical flow
 //-------------------------------------------------
 
 			VHALF[I][0]=0;
@@ -111,7 +111,7 @@ void DISSIPATION::evolve_dissip(double *PXX, double *BULK)
 
 
 //-------------------------------------------------
-// Zeitliche Entwicklung der dissip Groessen
+// Temporal evolution of dissipative variables 
 //-------------------------------------------------
 
 		for(int I=ZERO-1; I<STOP+1; I++)
@@ -120,8 +120,8 @@ void DISSIPATION::evolve_dissip(double *PXX, double *BULK)
 			BULKEVOLVE[I]=UPWIND(BULKRELAX[I-1],BULKRELAX[I], BULKRELAX[I+1], VELRIEMANN[I], DX[I]);
 			
 			
-// Vermeidung von unphysikalischen Werten 
-// (Zu kleine Werte fuehren zu schlechten Ergebnissen im Upwind-Scheme)
+// Avoid unphysical values
+// (Too small values can lead to bad results for upwind-scheme)
 				if(fabs(PXXEVOLVE[I])<10e-12)
 				PXXEVOLVE[I]=0;
 		}	
@@ -130,7 +130,7 @@ void DISSIPATION::evolve_dissip(double *PXX, double *BULK)
 
 
 //-------------------------------------------------
-// Entwicklung des gesamten Systems
+// Evolution of whole system
 //-------------------------------------------------
 
 void DISSIPATION::evolve_complete(double **VAR,double *PXX, double *BULK)
@@ -140,8 +140,8 @@ void DISSIPATION::evolve_complete(double **VAR,double *PXX, double *BULK)
 
 	
 //-------------------------------------------------
-// Berechne konservative Variablen und die Geschwindigkeit 
-// vor dem Anwenden des Riemann-Solvers
+// Compute conservative variables and velocity 
+// before applying Riemann-Solver
 //-------------------------------------------------
 
 	for(int I=ZERO; I<STOP ;I++) 
@@ -165,7 +165,7 @@ void DISSIPATION::evolve_complete(double **VAR,double *PXX, double *BULK)
 
 	
 //-------------------------------------------------
-// Zeitliche Entwicklung des gesamten Systems
+// Temporal evolution of the whole system
 //-------------------------------------------------
 
 	for(int I=ZERO; I<STOP; I++)
@@ -187,8 +187,8 @@ void DISSIPATION::evolve_complete(double **VAR,double *PXX, double *BULK)
 
 
 //-------------------------------------------------
-// Wiederherstellung der primitiven Variablen mit
-// Beruecksichtigung der dissipativen Effekte
+// Recover primitive variables while taking 
+// dissipative effects under consideration
 //-------------------------------------------------
 
 #pragma omp parallel for
@@ -226,7 +226,7 @@ void DISSIPATION::evolve_complete(double **VAR,double *PXX, double *BULK)
 
 
 //-------------------------------------------------
-// Testen, ob Baryondichte oder Geschwindigkeit unphysikalisch ist
+// Test if baryon density or velocity is unphysical
 //-------------------------------------------------
 
 			if(VAR[I][0] > 1) 
@@ -251,12 +251,13 @@ void DISSIPATION::evolve_complete(double **VAR,double *PXX, double *BULK)
 
 
 //-------------------------------------------------
-// Realisierung des upwind-schmes
+// Compute of upwind-scheme
 //-------------------------------------------------
 
 double DISSIPATION::UPWIND(double UL, double U, double UR, double VELX,double DELTAX)
 		{
-		//Wegen Strang Splitting nur halber Zeitschritt!
+        // Compute only half time step because of
+        // Strang Splitting
 			double DELTA=(DT*VELX)/(DELTAX*2);
 			if(VELX >0)
 			{	
@@ -275,8 +276,8 @@ double DISSIPATION::UPWIND(double UL, double U, double UR, double VELX,double DE
 
  
 //-------------------------------------------------
-// Realisierung der Orts- und Zeitableitung fuer 
-// die Navier-Stokes Groessen
+// Computation of spacial- and temporal derivative
+// for the Navier-Stokes values
 //-------------------------------------------------
 
 	double	DISSIPATION::DTIME(double EVELX, double V)
@@ -290,7 +291,7 @@ double DISSIPATION::UPWIND(double UL, double U, double UR, double VELX,double DE
 }
 
 //-------------------------------------------------
-// Navier-Stokes Groessen 
+// Navier-Stokes values
 //-------------------------------------------------
 
 	double DISSIPATION::PIXX(double DERIVX, double DERIVT, double V)
@@ -315,7 +316,7 @@ double DISSIPATION::UPWIND(double UL, double U, double UR, double VELX,double DE
 
 
 //-------------------------------------------------
-// Randbedingungen
+// Bounday Conditions
 //-------------------------------------------------
 
 		void DISSIPATION::boundary(double *VAR)

@@ -1,16 +1,16 @@
 #include <stdlib.h>
 
 //-------------------------------------------------
-// Einbinden der Header mit dem approximaitven Riemann-Solver aus
-// Y. Akamatsu et al., arXiv.org (2013) 34, 1302.1665
+// Include Class for Approximative Riemann solver,
+//  based on
+//  Y. Akamatsu et al., arXiv.org (2013) 34, 1302.1665
 //-------------------------------------------------
 
 #include "RIEMANN.h"
 
 
 //-------------------------------------------------
-// Header mit Klasse als Template zum einfachen implementieren von
-// numerischen Schmes
+// Include class with numerical schemes
 //-------------------------------------------------
 
 class NUMSCHEME
@@ -23,7 +23,7 @@ public:
 
 
 //-------------------------------------------------
-// Einbinden der Header fuer die 1+1 Dimensionale MUSCL-HANCOCK-Methode
+// 1+1 Dimensional MUSCL-HANCOCK-Methode
 //-------------------------------------------------
 
 #include "MUSCL.h"
