@@ -110,10 +110,11 @@ double fermi3= 1/(pow(0.197,3.)*pow(10.,9.));
 // Read in 'input.ini'
 //-------------------------------------------------
 
-void readin(STATE * L1,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS); 
+void readin(std::string * filename, STATE * L1,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS); 
 
+bool is_file_exist(const char *fileName);
 
-int main()
+int main(int argc, char** argv)
 {
 	//-------------------------------------------------
 	// Initialize the initial states
@@ -211,8 +212,27 @@ int main()
 	//-------------------------------------------------
 	// Read in parameters from 'input.ini'
 	//-------------------------------------------------
+    
+    if (argc != 3 || argv[1] == argv[2])
+    {
+       throw invalid_argument("Not enough arguments! \n Please provide the configuration file and the folder to save the results! \n e.g.: \n ./hydro input.ini DATA");
+    }
 
-	readin(&iLEFT1,&iLEFT2, &iRIGHT1, &iRIGHT2, &PERT, &STOPTIME, &DELTAT, &GRIDPOINTS, &GRIDLENGTH, &SHEARCONST, &SCHEME, &SLIMITER, &WHICHEOS, &VISCOUS); 
+
+
+    std::string filename = argv[1]; 
+    std::string foldername = argv[2]; 
+    std::cout << "Used Configuration File: " << filename << std::endl;
+    std::cout << "Used Folder: " << foldername << std::endl;
+
+    if( false == is_file_exist(filename.c_str()))
+        throw invalid_argument("Configuration File not existing!"); 
+
+    if( false == is_file_exist(foldername.c_str()))
+        throw invalid_argument("Folder for Results not existing!"); 
+
+	readin(&filename, &iLEFT1,&iLEFT2, &iRIGHT1, &iRIGHT2, &PERT, &STOPTIME, &DELTAT, &GRIDPOINTS, &GRIDLENGTH, &SHEARCONST, &SCHEME, &SLIMITER, &WHICHEOS, &VISCOUS); 
+
 	if(WHICHEOS== "QCD")
 		eofstate = new QCD;
 	else if(WHICHEOS== "GAS")
@@ -368,9 +388,9 @@ int main()
 
 	fstream c_output_p, c_output_v, c_output_n;
 
-	c_output_p.open("DATA/c_output_p.txt", ios::out);
-	c_output_v.open("DATA/c_output_v.txt", ios::out);
-	c_output_n.open("DATA/c_output_n.txt", ios::out);
+	c_output_p.open(foldername + "/c_output_p.txt", ios::out);
+	c_output_v.open(foldername + "/c_output_v.txt", ios::out);
+	c_output_n.open(foldername + "/c_output_n.txt", ios::out);
 
 
 	//-------------------------------------------------
@@ -381,7 +401,7 @@ int main()
 
 	fstream output;
 
-	output.open("DATA/output_0.txt", ios::out);
+	output.open(foldername + "/output_0.txt", ios::out);
 
 	for(int I=ZERO; I<STOP; I++)
 	{
@@ -525,7 +545,7 @@ int main()
 
 		fstream output;
 
-		output.open("DATA/output_"+std::to_string(FN)+".txt", ios::out);
+		output.open(foldername + "/output_"+std::to_string(FN)+".txt", ios::out);
 
 		//output.open("out.dat", ios::out);
 		for(int I=ZERO; I<STOP; I++)
@@ -595,12 +615,12 @@ int main()
 // Read in parameters from 'input.ini'
 //-------------------------------------------------
 
-void readin(STATE * L1 ,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS) 
+void readin(std::string * filename, STATE * L1 ,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double *STOPTIME, double *DELTAT, int *GRIDPOINTS, double *GRIDLENGTH, double *SHEARCONST, string *SCHEME, string *SLIMITER, string *WHICHEOS, string *VISCOUS) 
 {
 
 	std::string templine; 
 	ifstream sourcedata;
-	sourcedata.open("input.ini", ios_base::in);
+	sourcedata.open(*filename, ios_base::in);
 
 	if (!sourcedata)
 		cout << "Could not open data!" << endl;
@@ -670,3 +690,9 @@ void readin(STATE * L1 ,STATE * L2, STATE * R1, STATE * R2, STATE * PERT, double
 	} 
 	sourcedata.close();
 }
+
+bool is_file_exist(const char *fileName)
+    {
+        std::ifstream infile(fileName);
+        return infile.good();
+    }
