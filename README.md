@@ -77,11 +77,13 @@ Configuration files for the different types of problems are in the `Examples` fo
 
 ### Shocktube Problem
 
+![Example](./images/shock_tube_problem.gif)
+
 
 ### Landau Model
-<!--
-![Example](./images/animate.gif)
--->
+
+![Example](./images/landau.gif)
+
 
 #### Landau Model with small Pertubation
 ---
