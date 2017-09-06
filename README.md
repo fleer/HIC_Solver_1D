@@ -5,8 +5,10 @@ This program simulates the space-time evolution of the Quark-Gluon-Plasma in one
 The algorithm is based on [1], which is a modified version of the *Two-Shock Riemann Solver* presented in [2].
 It utilizes the second-order Godunov method and is able to solve different kind of Riemann problems.
 
-A Riemann problem is an initial-value **t**=0 problem of the kind
+A Riemann problem is an initial-value ![](https://latex.codecogs.com/gif.latex?%24t%3D0%24) problem of the kind
+
 ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BA%7D%28x%2C0%29%20%3D%20%5Cleft%5Clbrace%20%5Cbegin%7Barray%7D%7Bl%20r%7D%20%5Cmathbf%7BL%7D%20%26%20%5Ctextrm%7Bfor%7D%20%5C%3B%20x%20%3C0%20%5C%5C%20%26%20%5C%5C%20%5Cmathbf%7BR%7D%20%26%20%5Ctextrm%7Bfor%7D%20%5C%3B%20x%20%3E0%20%5Cend%7Barray%7D%20%5Cright.%20%2C)
+
 where ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BL%7D) and ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BR%7D) characterize the left and right initial states that are separeted by a singularity.
 
 
