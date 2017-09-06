@@ -5,14 +5,9 @@ This program simulates the space-time evolution of the Quark-Gluon-Plasma in one
 The algorithm is based on [1], which is a modified version of the *Two-Shock Riemann Solver* presented in [2].
 It utilizes the second-order Godunov method and is able to solve different kind of Riemann problems.
 
-A Riemann problem is an initial-value $`t=0`$ problem of the kind
-```math
-\mathbf{A}(x,0) = \left\lbrace \begin{array}{l r}
-\mathbf{L} & \textrm{für} \; x <0 \\ & \\ \mathbf{R} & \textrm{für} \; x >0
-\end{array}
-\right. ,
-```
-where $`\mathbf{L}`$ and $`\mathbf{R}`$ characterize the left and right initial states that are separeted by a singularity.
+A Riemann problem is an initial-value **t**=0 problem of the kind
+![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BA%7D%28x%2C0%29%20%3D%20%5Cleft%5Clbrace%20%5Cbegin%7Barray%7D%7Bl%20r%7D%20%5Cmathbf%7BL%7D%20%26%20%5Ctextrm%7Bfor%7D%20%5C%3B%20x%20%3C0%20%5C%5C%20%26%20%5C%5C%20%5Cmathbf%7BR%7D%20%26%20%5Ctextrm%7Bfor%7D%20%5C%3B%20x%20%3E0%20%5Cend%7Barray%7D%20%5Cright.%20%2C)
+where ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BL%7D) and ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BR%7D) characterize the left and right initial states that are separeted by a singularity.
 
 
 
@@ -66,7 +61,7 @@ cd HIC_Solver_1D && make CXX=g++-7
 
 The parameters for the simulation are stored in the `input.ini`. The program is able to solve simple Riemann Problems as the shocktube problem, but also more complicated problems.
 
-The initial states $`\mathbf{L}_1, \mathbf{L}_2, \mathbf{R}_1, \mathbf{R}_2`$ are characterized through their initial baryon density $`n_{\textrm{B}}`$, velocity $`v`$ and pressure $`p`$.
+The initial states ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BL%7D_1), ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BL%7D_2), ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BR%7D_1), ![](https://latex.codecogs.com/gif.latex?%5Cmathbf%7BR%7D_2) are characterized through their initial baryon density ![](https://latex.codecogs.com/gif.latex?%24n_%7B%5Ctextrm%7BB%7D%7D%24), velocity ![](https://latex.codecogs.com/gif.latex?%24v%24) and pressure ![](https://latex.codecogs.com/gif.latex?%24p%24).
 
 The code includes two different equations of state:
 
