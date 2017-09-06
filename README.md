@@ -5,14 +5,14 @@ This program simulates the space-time evolution of the Quark-Gluon-Plasma in one
 The algorithm is based on [1], which is a modified version of the *Two-Shock Riemann Solver* presented in [2].
 It utilizes the second-order Godunov method and is able to solve different kind of Riemann problems.
 
-A Riemann problem is an initial-value (\\(t=0\\)) problem of the kind
-\\[
+A Riemann problem is an initial-value $`t=0`$ problem of the kind
+```math
 \mathbf{A}(x,0) = \left\lbrace \begin{array}{l r}
 \mathbf{L} & \textrm{für} \; x <0 \\ & \\ \mathbf{R} & \textrm{für} \; x >0
 \end{array}
 \right. ,
-\\]
-where \\(\mathbf{L}\\) and \\(\mathbf{R}\\) characterize the left and right initial states that are separeted by a singularity.
+```
+where $`\mathbf{L}`$ and $`\mathbf{R}`$ characterize the left and right initial states that are separeted by a singularity.
 
 
 
@@ -66,7 +66,7 @@ cd HIC_Solver_1D && make CXX=g++-7
 
 The parameters for the simulation are stored in the `input.ini`. The program is able to solve simple Riemann Problems as the shocktube problem, but also more complicated problems.
 
-The initial states \\(\mathbf{L}_1, \mathbf{L}_2, \mathbf{R}_1, \mathbf{R}_2\\) are characterized through their initial baryon density \\(n_{\textrm{B}}\\), velocity \\(v\\) and pressure \\(p\\).
+The initial states $`\mathbf{L}_1, \mathbf{L}_2, \mathbf{R}_1, \mathbf{R}_2`$ are characterized through their initial baryon density $`n_{\textrm{B}}`$, velocity $`v`$ and pressure $`p`$.
 
 The code includes two different equations of state:
 
