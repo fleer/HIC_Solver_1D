@@ -1,5 +1,5 @@
 
-# Relativistic viscous hydrodynamics code for the simulation of QGP in heavy-ion collisions for 1 dimenson [![Build Status](https://travis-ci.com/fleer/HIC_Solver_1D.svg?token=sGDhmF9VD4p3i1s4BjQK&branch=master)](https://travis-ci.com/fleer/HIC_Solver_1D)
+# Simulation of Quark-Gluon-Plasma in heavy-ion collisions with the help of relativistic viscous hydrodynamics (1+1 dimensions) [![Build Status](https://travis-ci.com/fleer/HIC_Solver_1D.svg?token=sGDhmF9VD4p3i1s4BjQK&branch=master)](https://travis-ci.com/fleer/HIC_Solver_1D)
 
 This program simulates the space-time evolution of the Quark-Gluon-Plasma in one spacial dimension, using numerical relativistic viscous hydrodynamics. 
 The algorithm is based on [1], which is a modified version of the *Two-Shock Riemann Solver* presented in [2].
