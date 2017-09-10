@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 	STATE iLEFT1(0), iRIGHT1(1), iLEFT2(0), iRIGHT2(1);
 
 	//-------------------------------------------------
-    // Initialize pertubation state
+    	// Initialize pertubation state
 	//-------------------------------------------------
 
 	STATE PERT(0);
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Initialize equation of state and numerical scheme
+   	// Initialize equation of state and numerical scheme
 	//-------------------------------------------------
 
 	EOS * eofstate;
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Initialization of some systemspecific variables
+    	// Initialization of some systemspecific variables
 	//-------------------------------------------------
 
 
@@ -166,8 +166,8 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Initialization of variables needed for 
-    // the computation of dissipation
+    	// Initialization of variables needed for 
+    	// the computation of dissipation
 	//-------------------------------------------------
 
 	// eta/s 
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Variables for tracking computation-time
+    	// Variables for tracking computation-time
 	//-------------------------------------------------
 
 	time_t now, later;
@@ -192,8 +192,8 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Test if OPENMP is supported
-    // Print number of usable CPUs 
+    	// Test if OPENMP is supported
+    	// Print number of usable CPUs 
 	//-------------------------------------------------
 
 #ifdef _OPENMP
@@ -255,7 +255,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Fill structures with help of EoS
+    	// Fill structures with help of EoS
 	//-------------------------------------------------
 
 	iLEFT1.pressure=eofstate->get_pressure(iLEFT1.temperature);
@@ -282,8 +282,8 @@ int main(int argc, char** argv)
 
 	//-------------------------------------------------
 	// Pertubation
-    // If no pertubation applied, the gridpoint has
-    // the same values as L2
+    	// If no pertubation applied, the gridpoint has
+    	// the same values as L2
 	//-------------------------------------------------
 	PERT.pressure=eofstate->get_pressure(PERT.temperature + iLEFT2.temperature);
 	PERT.energy=eofstate->get_energy(PERT.temperature + iLEFT2.temperature);
@@ -294,8 +294,8 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Initialize the Grid
-    // Gridsize [START-4 : STOP+4]
+    	// Initialize the Grid
+    	// Gridsize [START-4 : STOP+4]
 	//-------------------------------------------------
 
 	X = new double [GRIDPOINTS+8];
@@ -308,10 +308,10 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Save variables for dissipationalgorithm
-    //  + Startvelocity
-    //  + Velocity - Riemann-Problem
-    //  + Matrix to save all variables temporary
+    	// Save variables for dissipationalgorithm
+    	//  + Startvelocity
+    	//  + Velocity - Riemann-Problem
+    	//  + Matrix to save all variables temporary
 	//-------------------------------------------------
 
 	VINITIAL = new double  [GRIDPOINTS+8];
@@ -321,14 +321,14 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Relaxation time
+    	// Relaxation time
 	//-------------------------------------------------
 
 	TAUETA= new double  [GRIDPOINTS+8];
 
 
 	//-------------------------------------------------
-    // Varaibles for shear and bulk viscosity
+    	// Varaibles for shear and bulk viscosity
 	//-------------------------------------------------
 
 	PXX= new double  [GRIDPOINTS+8];
@@ -350,14 +350,14 @@ int main(int argc, char** argv)
 	}
 
 	//-------------------------------------------------
-    // Variable for Progress bar
+    	// Variable for Progress bar
 	//-------------------------------------------------
 
 	int barWidth=70;
 
 	//-------------------------------------------------
-    // Initialize numerical scheme with initial 
-    // parameters
+    	// Initialize numerical scheme with initial 
+    	// parameters
 	//	+ MUSCL --> MUSCL-HANCOCK-Method
 	//-------------------------------------------------
 
@@ -371,7 +371,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // START of main function
+    	// START of main function
 	//	+ FN --> Timestep 
 	//	+ FTIME --> Complete Time [fm]
 	//-------------------------------------------------
@@ -383,7 +383,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Open files for contour-plot-data of primitve variables
+    	// Open files for contour-plot-data of primitve variables
 	//-------------------------------------------------
 
 	fstream c_output_p, c_output_v, c_output_n;
@@ -394,9 +394,9 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Open files to store data of every time step
-    // Files are saved in "./DATA/" folder, which has to
-    // be creatd manually!
+    	// Open files to store data of every time step
+    	// Files are saved in "./DATA/" folder, which has to
+    	// be creatd manually!
 	//-------------------------------------------------
 
 	fstream output;
@@ -436,14 +436,14 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // START of main-loop
+    	// START of main-loop
 	//-------------------------------------------------
 
 	while(	FTIME <= STOPTIME)
 	{
 
 		//-------------------------------------------------
-        // Create progress bar
+        	// Create progress bar
 		//-------------------------------------------------
 
 		std::cout << "[";
@@ -457,14 +457,14 @@ int main(int argc, char** argv)
 
 
 		//-------------------------------------------------
-        // Initialize boundary conditions
+        	// Initialize boundary conditions
 		//-------------------------------------------------
 
 		nscheme->boundary(GVAR);
 
 
 		//-------------------------------------------------
-        // Compute relaxation time
+        	// Compute relaxation time
 		//	+ tau=1/T
 		//-------------------------------------------------
 
@@ -492,16 +492,16 @@ int main(int argc, char** argv)
 
 
 		//-------------------------------------------------
-        // Temporal evolution of primitive variables GVAR
-        // under influence of the chosen numerical scheme
+        	// Temporal evolution of primitive variables GVAR
+        	// under influence of the chosen numerical scheme
 		//-------------------------------------------------
 
 		nscheme->evaluate(GVAR,DELTAT);
 
 
 		//-------------------------------------------------
-        // Save primitive variables for dissipation
-        // algorithm
+        	// Save primitive variables for dissipation
+        	// algorithm
 		//-------------------------------------------------
 		for(int I=ZERO; I< STOP; I++)
 			VRIEMANN[I]=GVAR[I][1];
@@ -534,7 +534,7 @@ int main(int argc, char** argv)
 		}
 		//-------------------------------------------------
 		// Compute nex time-step (CFL-Condition, 
-        // CFL-Number:0.4)
+        	// CFL-Number:0.4)
 		//-------------------------------------------------
 
 		FTIME=FTIME+nscheme->get_timestep();
@@ -590,7 +590,7 @@ int main(int argc, char** argv)
 
 
 	//-------------------------------------------------
-    // Close files for contour plots
+    	// Close files for contour plots
 	//-------------------------------------------------
 
 	c_output_p.close();
