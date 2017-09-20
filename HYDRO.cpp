@@ -547,7 +547,6 @@ int main(int argc, char** argv)
 
 		output.open(foldername + "/output_"+std::to_string(FN)+".txt", ios::out);
 
-		//output.open("out.dat", ios::out);
 		for(int I=ZERO; I<STOP; I++)
 		{
 			double OUTTEMP=eofstate->get_temperature(GVAR[I][2]);

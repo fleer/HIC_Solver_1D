@@ -66,10 +66,10 @@ The code includes two different equations of state:
 1. Approximated EoS of QCD, introduced in [3]
 2. Eos of a free Gluon Gas [1][4]
 
-Configuration files for the different types of problems are in `./Example_Configs`.<!--, together with [gnuplot](http://www.gnuplot.info/) scripts for plotting and generating *gif-animations*.-->
+Configuration files for the different types of problems are in `./Example_Configs`.
+Scripts for plotting and generating *gif-animations* with [gnuplot](http://www.gnuplot.info/) can be found in `./Gnuplot`.
 
-To start the simulation, execute the program and specify the configuration file, along with the folder where the results should be saved.
-
+To start the simulation, execute the program and specify the congiuration file, along the the folder where the results should be saved.
 ```
 ./hydro input.ini DATA
 ```
@@ -91,7 +91,7 @@ This leads to a gradient in pressure which lets the system evolve.
 As in the early stadium of the system the longitudinal pressure is much larger than the transversal pressure, Landau assumed that the early evolution of the system can be described by taking only one dimension under consideration (which is the direction fo the longitudinal pressure).  
 <!-- At the point of time where the transversal pressure can no longer be ignored, a 3D hydrodynamics simulation has of course to be taken into consideration.-->
 
-|![Landau](./images/landau_model.pdf)| ![LandauEvolve](./images/landau_model_evolve.pdf)|
+|![Landau](./images/landau_model.png)| ![LandauEvolve](./images/landau_model_evolve.png)|
 |:--:|:--:|
 |Initial State of the system, described by the Landau model|Evolution of the system described by the Landau model|
 
@@ -110,6 +110,7 @@ The configuration for the illustrated results can be found in `./Example_Configs
 #### Landau Model with small Pertubation
 Additionally, a small pertubation can be implemented at ![](https://latex.codecogs.com/gif.latex?x%3D0).
 
+![Example](./images/landau_pert.gif)
 
 ---
 [1] Akamatsu, Yukinao, et al. "A new scheme of causal viscous hydrodynamics for relativistic heavy-ion collisions: A Riemann solver for quark–gluon plasma." Journal of Computational Physics 256 (2014): 34-54.
