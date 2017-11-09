@@ -36,12 +36,12 @@ matrix:
           env:
              - MATRIX_EVAL="brew install gcc --without-multilib && CC=gcc-7 && CXX=g++-7"
 before_install:
-  - eval $MATRIX_EVAL
-      - if [ $TRAVIS_OS_NAME = linux ]; then 
-          wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz;
-          tar -xzvf gsl-2.4.tar.gz;
-          pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd;
-          fi
-      - if [ $TRAVIS_OS_NAME = osx ]; then travis_wait brew install gsl; fi
+    # - eval $MATRIX_EVAL
+    - if [ $TRAVIS_OS_NAME = linux ]; then 
+        wget ftp://ftp.gnu.org/gnu/gsl/gsl-2.4.tar.gz;
+        tar -xzvf gsl-2.4.tar.gz;
+        pushd gsl-2.4 && ./configure --prefix=/usr && make && sudo make install && popd;
+        fi
+    - if [ $TRAVIS_OS_NAME = osx ]; then travis_wait brew install gsl; fi
 
 script: make CXX=$COMPILER
