@@ -1,7 +1,7 @@
 
-# Simulation of Quark-Gluon-Plasma in heavy-ion collisions with the help of relativistic viscous hydrodynamics (1+1 dimension) [![Build Status](https://travis-ci.org/fleer/HIC_Solver_1D.svg?branch=master)](https://travis-ci.org/fleer/HIC_Solver_1D)
+# Simulation of Quark-Gluon-Plasma in heavy-ion collisions with the help of relativistic dissipative hydrodynamics (1+1 dimension) [![Build Status](https://travis-ci.org/fleer/HIC_Solver_1D.svg?branch=master)](https://travis-ci.org/fleer/HIC_Solver_1D)
 
-This program simulates the space-time evolution of the Quark-Gluon-Plasma in one spacial dimension, using numerical relativistic viscous hydrodynamics. 
+This program simulates the space-time evolution of the Quark-Gluon-Plasma in one spacial dimension, using numerical relativistic dissipative hydrodynamics. 
 The algorithm is based on [1], which is a modified version of the *Two-Shock Riemann Solver* presented in [2].
 It utilizes the second-order Godunov method and is able to solve different kind of Riemann problems.
 
